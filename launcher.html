@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>GBA GameCenter</title>
+        <meta charset="UTF-8">
+            <!--Required Scripts-->
+            <script src="IodineGBA/includes/TypedArrayShim.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceCartridgeCore.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceDMACore.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceEmulatorCore.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceGraphicsCore.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceIOCore.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceMemoryCore.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceIRQCore.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceJoyPadCore.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceSerialCore.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceSoundCore.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceTimerCore.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceWaitCore.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceCPUCore.js"></script>
+            <script src="IodineGBA/IodineGBA/GameBoyAdvanceSavesCore.js"></script>
+            <script src="IodineGBA/IodineGBA/sound/GameBoyAdvanceFIFOCore.js"></script>
+            <script src="IodineGBA/IodineGBA/sound/GameBoyAdvanceChannel1Synth.js"></script>
+            <script src="IodineGBA/IodineGBA/sound/GameBoyAdvanceChannel2Synth.js"></script>
+            <script src="IodineGBA/IodineGBA/sound/GameBoyAdvanceChannel3Synth.js"></script>
+            <script src="IodineGBA/IodineGBA/sound/GameBoyAdvanceChannel4Synth.js"></script>
+            <script src="IodineGBA/IodineGBA/CPU/ARMInstructionSetCore.js"></script>
+            <script src="IodineGBA/IodineGBA/CPU/THUMBInstructionSetCore.js"></script>
+            <script src="IodineGBA/IodineGBA/CPU/ARMCPSRAttributeTable.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceGraphicsRendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceBGTEXTRendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceBG2FrameBufferRendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceBGMatrixRendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceAffineBGRendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceColorEffectsRendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceMode0RendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceMode1RendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceMode2RendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceModeFrameBufferRendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceMosaicRendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceOBJRendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceOBJWindowRendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceWindowRendererCore.js"></script>
+            <script src="IodineGBA/IodineGBA/graphics/GameBoyAdvanceCompositorCore.js"></script>
+            <script src="IodineGBA/IodineGBA/memory/GameBoyAdvanceDMA0Core.js"></script>
+            <script src="IodineGBA/IodineGBA/memory/GameBoyAdvanceDMA1Core.js"></script>
+            <script src="IodineGBA/IodineGBA/memory/GameBoyAdvanceDMA2Core.js"></script>
+            <script src="IodineGBA/IodineGBA/memory/GameBoyAdvanceDMA3Core.js"></script>
+            <script src="IodineGBA/IodineGBA/cartridge/GameBoyAdvanceSaveDeterminerCore.js"></script>
+            <script src="IodineGBA/IodineGBA/cartridge/GameBoyAdvanceSRAMChipCore.js"></script>
+            <script src="IodineGBA/IodineGBA/cartridge/GameBoyAdvanceFLASHChipCore.js"></script>
+            <script src="IodineGBA/IodineGBA/cartridge/GameBoyAdvanceEEPROMChipCore.js"></script>
+            <!--Add your webpage scripts below-->
+            <script src="user_scripts/XAudioJS/swfobject.js"></script>
+            <script src="user_scripts/XAudioJS/resampler.js"></script>
+            <script src="user_scripts/XAudioJS/XAudioServer.js"></script>
+            <script src="user_scripts/IodineGBAROMLoadGlueCode.js"></script>
+            <script src="user_scripts/IodineGBAJoyPadGlueCode.js"></script>
+            <script src="user_scripts/IodineGBASavesGlueCode.js"></script>
+            <script src="user_scripts/IodineGBAGraphicsGlueCode.js"></script>
+            <script src="user_scripts/IodineGBAAudioGlueCode.js"></script>
+            <script src="user_scripts/IodineGBACoreGlueCode.js"></script>
+            <script src="user_scripts/base64.js"></script>
+            <link rel="stylesheet" href="user_css/main.css">
+    </head>
+    <body>
+        <canvas id="emulator_target" width="240px" height="160px"></canvas>
+        <span id="tempMessage"></span>
+    </body>
+</html>
