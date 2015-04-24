@@ -276,11 +276,11 @@ GameBoyAdvanceDMA3.prototype.handleDMACopy = function () {
     //Transfer Data:
     if ((this.is32Bit | 0) == 4) {
         //32-bit Transfer:
-        this.copy32(source | 0, destination | 0);
+        this.copy32(source & -4, destination & -4);
     }
     else {
         //16-bit Transfer:
-        this.copy16(source | 0, destination | 0);
+        this.copy16(source & -2, destination & -2);
     }
 }
 GameBoyAdvanceDMA3.prototype.copy16 = function (source, destination) {
