@@ -2,7 +2,7 @@
 /*
  * This file is part of IodineGBA
  *
- * Copyright (C) 2012-2014 Grant Galitz
+ * Copyright (C) 2012-2015 Grant Galitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -146,24 +146,29 @@ else {
     }
 }
 GameBoyAdvanceOBJRenderer.prototype.renderScanLine = function (line) {
+    line = line | 0;
     this.targetBuffer = this.scratchBuffer;
-    this.performRenderLoop(line | 0, false);
+    this.performRenderLoop(line | 0, 0);
     return this.scratchBuffer;
 }
 GameBoyAdvanceOBJRenderer.prototype.renderWindowScanLine = function (line) {
+    line = line | 0;
     this.targetBuffer = this.scratchWindowBuffer;
-    this.performRenderLoop(line | 0, true);
+    this.performRenderLoop(line | 0, 0x2);
     return this.scratchWindowBuffer;
 }
 GameBoyAdvanceOBJRenderer.prototype.performRenderLoop = function (line, isOBJWindow) {
+    line = line | 0;
+    isOBJWindow = isOBJWindow | 0;
     this.clearScratch();
     for (var objNumber = 0; objNumber < 0x80; ++objNumber) {
-        this.renderSprite(line | 0, this.OAMTable[objNumber], isOBJWindow);
+        this.renderSprite(line | 0, this.OAMTable[objNumber], isOBJWindow | 0);
     }
 }
 GameBoyAdvanceOBJRenderer.prototype.renderSprite = function (line, sprite, isOBJWindow) {
     line = line | 0;
-    if (this.isDrawable(sprite, isOBJWindow)) {
+    isOBJWindow = isOBJWindow | 0;
+    if (this.isDrawable(sprite, isOBJWindow | 0)) {
         if ((sprite.mosaic | 0) != 0) {
             //Correct line number for mosaic:
             line = ((line | 0) - (this.gfx.mosaicRenderer.getOBJMosaicYOffset(line | 0) | 0)) | 0;
@@ -498,8 +503,9 @@ GameBoyAdvanceOBJRenderer.prototype.outputSpriteToScratch = function (sprite, xS
     }
 }
 GameBoyAdvanceOBJRenderer.prototype.isDrawable = function (sprite, doWindowOBJ) {
+    doWindowOBJ = doWindowOBJ | 0;
     //Make sure we pass some checks that real hardware does:
-    if (((sprite.mode | 0) < 2 && !doWindowOBJ) || (doWindowOBJ && (sprite.mode | 0) == 2)) {
+    if ((sprite.mode | doWindowOBJ) < 2 || (sprite.mode | 0) == (doWindowOBJ | 0)) {
         if ((sprite.doubleSizeOrDisabled | 0) == 0 || (sprite.matrix2D | 0) != 0) {
             if ((sprite.shape | 0) < 3) {
                 if ((this.gfx.BGMode | 0) < 3 || (sprite.tileNumber | 0) >= 0x200) {
@@ -567,7 +573,7 @@ if (__LITTLE_ENDIAN__) {
             OAMTable.matrixParameters = (data >> 23) & 0x7C;
             OAMTable.horizontalFlip = data & 0x10000000;
             OAMTable.verticalFlip = data & 0x20000000;
-            OAMTable.size = (data >> 30) & 0x3;
+            OAMTable.size = data >>> 30;
         }
         else {
             //Attrib 2:
@@ -644,7 +650,7 @@ else {
             OAMTable.matrixParameters = (data >> 23) & 0x7C;
             OAMTable.horizontalFlip = data & 0x10000000;
             OAMTable.verticalFlip = data & 0x20000000;
-            OAMTable.size = (data >> 30) & 0x3;
+            OAMTable.size = data >>> 30;
         }
         else {
             //Attrib 2:

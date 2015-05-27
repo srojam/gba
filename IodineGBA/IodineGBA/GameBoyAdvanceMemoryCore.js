@@ -1186,27 +1186,19 @@ GameBoyAdvanceMemory.prototype.writeIODispatch8 = function (address, data) {
         //4000159h through 40001FFh - NOT USED - GLITCHED
         //4000200h - IE - Interrupt Enable Register (R/W)
         case 0x4000200:
-            this.IOCore.updateCoreClocking();
-            this.irq.writeIE0(data & 0xFF);
-            this.IOCore.updateCoreEventTime();
+            this.irq.writeIE8_0(data | 0);
             break;
         //4000201h - IE - Interrupt Enable Register (R/W)
         case 0x4000201:
-            this.IOCore.updateCoreClocking();
-            this.irq.writeIE1(data & 0xFF);
-            this.IOCore.updateCoreEventTime();
+            this.irq.writeIE8_1(data | 0);
             break;
         //4000202h - IF - Interrupt Request Flags / IRQ Acknowledge
         case 0x4000202:
-            this.IOCore.updateCoreClocking();
-            this.irq.writeIF0(data & 0xFF);
-            this.IOCore.updateCoreEventTime();
+            this.irq.writeIF8_0(data | 0);
             break;
         //4000203h - IF - Interrupt Request Flags / IRQ Acknowledge
         case 0x4000203:
-            this.IOCore.updateCoreClocking();
-            this.irq.writeIF1(data & 0xFF);
-            this.IOCore.updateCoreEventTime();
+            this.irq.writeIF8_1(data | 0);
             break;
         //4000204h - WAITCNT - Waitstate Control (R/W)
         case 0x4000204:
@@ -1860,17 +1852,11 @@ GameBoyAdvanceMemory.prototype.writeIODispatch16 = function (address, data) {
         //4000159h through 40001FFh - NOT USED - GLITCHED
         //4000200h - IE - Interrupt Enable Register (R/W)
         case 0x4000200:
-            this.IOCore.updateCoreClocking();
-            this.irq.writeIE0(data & 0xFF);
-            this.irq.writeIE1((data >> 8) & 0xFF);
-            this.IOCore.updateCoreEventTime();
+            this.irq.writeIE16(data | 0);
             break;
         //4000202h - IF - Interrupt Request Flags / IRQ Acknowledge
         case 0x4000202:
-            this.IOCore.updateCoreClocking();
-            this.irq.writeIF0(data & 0xFF);
-            this.irq.writeIF1((data >> 8) & 0xFF);
-            this.IOCore.updateCoreEventTime();
+            this.irq.writeIF16(data | 0);
             break;
         //4000204h - WAITCNT - Waitstate Control (R/W)
         case 0x4000204:
@@ -2377,12 +2363,7 @@ GameBoyAdvanceMemory.prototype.writeIODispatch32 = function (address, data) {
         //4000200h - IE - Interrupt Enable Register (R/W)
         //4000202h - IF - Interrupt Request Flags / IRQ Acknowledge
         case 0x4000200:
-            this.IOCore.updateCoreClocking();
-            this.irq.writeIE0(data & 0xFF);
-            this.irq.writeIE1((data >> 8) & 0xFF);
-            this.irq.writeIF0((data >> 16) & 0xFF);
-            this.irq.writeIF1(data >>> 24);
-            this.IOCore.updateCoreEventTime();
+            this.irq.writeIRQ32(data | 0);
             break;
         //4000204h - WAITCNT - Waitstate Control (R/W)
         //4000206h - WAITCNT - Waitstate Control (R/W)
@@ -3387,21 +3368,19 @@ GameBoyAdvanceMemory.prototype.readIODispatch8 = function (address) {
         //400015Ch through 40001FFh - NOT USED - GLITCHED
         //4000200h - IE - Interrupt Enable Register (R/W)
         case 0x4000200:
-            data = this.irq.readIE0() | 0;
+            data = this.irq.readIE8_0() | 0;
             break;
         //4000201h - IE - Interrupt Enable Register (R/W)
         case 0x4000201:
-            data = this.irq.readIE1() | 0;
+            data = this.irq.readIE8_1() | 0;
             break;
         //4000202h - IF - Interrupt Request Flags / IRQ Acknowledge
         case 0x4000202:
-            this.IOCore.updateCoreSpillRetain();
-            data = this.irq.readIF0() | 0;
+            data = this.irq.readIF8_0() | 0;
             break;
         //4000203h - IF - Interrupt Request Flags / IRQ Acknowledge
         case 0x4000203:
-            this.IOCore.updateCoreSpillRetain();
-            data = this.irq.readIF1() | 0;
+            data = this.irq.readIF8_1() | 0;
             break;
         //4000204h - WAITCNT - Waitstate Control (R/W)
         case 0x4000204:
@@ -3834,12 +3813,11 @@ GameBoyAdvanceMemory.prototype.readIO16 = function (address) {
         //400015Ch through 40001FFh - NOT USED - GLITCHED
         //4000200h - IE - Interrupt Enable Register (R/W)
         case 0x4000200:
-            data = this.irq.readIE0() | (this.irq.readIE1() << 8);
+            data = this.irq.readIE16() | 0;
             break;
         //4000202h - IF - Interrupt Request Flags / IRQ Acknowledge
         case 0x4000202:
-            this.IOCore.updateCoreSpillRetain();
-            data = this.irq.readIF0() | (this.irq.readIF1() << 8);
+            data = this.irq.readIF16() | 0;
             break;
         //4000204h - WAITCNT - Waitstate Control (R/W)
         case 0x4000204:
@@ -4180,11 +4158,7 @@ GameBoyAdvanceMemory.prototype.readIO32 = function (address) {
         //4000200h - IE - Interrupt Enable Register (R/W)
         //4000202h - IF - Interrupt Request Flags / IRQ Acknowledge
         case 0x4000200:
-            this.IOCore.updateCoreSpillRetain();
-            data = this.irq.readIE0() |
-            (this.irq.readIE1() << 8) |
-            (this.irq.readIF0() << 16) |
-            (this.irq.readIF1() << 24);
+            data = this.irq.readIRQ32() | 0;
             break;
         //4000204h - WAITCNT - Waitstate Control (R/W)
         //4000206h - NOT USED - ZERO

@@ -687,8 +687,8 @@ if (typeof Math.imul == "function") {
             }
             else {
                 eventTime = (0x10000 - (this.timer3Counter | 0)) | 0;
-                eventTime = Math.imul(countUntilReload | 0, this.timer3Prescalar | 0) | 0;
-                eventTime = ((countUntilReload | 0) - (this.timer3Precounter | 0)) | 0;
+                eventTime = Math.imul(eventTime | 0, this.timer3Prescalar | 0) | 0;
+                eventTime = ((eventTime | 0) - (this.timer3Precounter | 0)) | 0;
             }
         }
         return eventTime | 0;
@@ -811,8 +811,8 @@ else {
             }
             else {
                 eventTime = (0x10000 - (this.timer3Counter | 0)) | 0;
-                eventTime = ((countUntilReload | 0) * (this.timer3Prescalar | 0)) | 0;
-                eventTime = ((countUntilReload | 0) - (this.timer3Precounter | 0)) | 0;
+                eventTime = ((eventTime | 0) * (this.timer3Prescalar | 0)) | 0;
+                eventTime = ((eventTime | 0) - (this.timer3Precounter | 0)) | 0;
             }
         }
         return eventTime | 0;

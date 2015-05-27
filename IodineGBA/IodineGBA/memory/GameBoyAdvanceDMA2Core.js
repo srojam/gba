@@ -262,18 +262,18 @@ GameBoyAdvanceDMA2.prototype.handleDMACopy = function () {
     //Transfer Data:
     if ((this.enabled | 0) == 0x10) {
         //32-bit Transfer:
-        this.copySound(source & -4);
+        this.copySound(source | 0);
     }
     else {
         //Get the destination address:
         var destination = this.destinationShadow | 0;
         if ((this.is32Bit | 0) == 4) {
             //32-bit Transfer:
-            this.copy32(source & -4, destination & -4);
+            this.copy32(source | 0, destination | 0);
         }
         else {
             //16-bit Transfer:
-            this.copy16(source & -2, destination & -2);
+            this.copy16(source | 0, destination | 0);
         }
     }
 }

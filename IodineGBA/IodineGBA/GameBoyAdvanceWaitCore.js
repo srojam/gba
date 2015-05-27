@@ -299,7 +299,7 @@ GameBoyAdvanceWait.prototype.resetPrebuffer = function () {
 }
 GameBoyAdvanceWait.prototype.drainOverdueClocks = function () {
     if ((this.clocks | 0) > 0 && (this.buffer | 0) < 8) {
-        var address = this.cpu.registers[15] | 0;
+        var address = this.cpu.registers[15] >>> 24;
         //Convert built up clocks to 16 bit word buffer units:
         do {
             this.clocks = ((this.clocks | 0) - (this.waitStateClocks16[address | 0] | 0)) | 0;
@@ -440,6 +440,7 @@ GameBoyAdvanceWait.prototype.SRAMAccess = function () {
     this.multiClock(this.SRAMWaitState | 0);
 }
 GameBoyAdvanceWait.prototype.SRAMAccessCPU = function () {
+    this.resetPrebuffer();
     this.IOCore.updateCore(this.SRAMWaitState | 0);
 }
 GameBoyAdvanceWait.prototype.VRAMAccess = function () {

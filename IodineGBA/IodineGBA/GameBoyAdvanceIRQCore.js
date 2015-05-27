@@ -50,54 +50,131 @@ GameBoyAdvanceIRQ.prototype.writeIME = function (data) {
     this.checkForIRQFire();
     this.IOCore.updateCoreEventTime();
 }
+GameBoyAdvanceIRQ.prototype.writeIE8_0 = function (data) {
+    data = data | 0;
+    this.IOCore.updateCoreClocking();
+    var oldValue = this.interruptsEnabled & 0x3F00;
+    data = data & 0xFF;
+    data = data | oldValue;
+    this.interruptsEnabled = data | 0;
+    this.checkForIRQFire();
+    this.IOCore.updateCoreEventTime();
+}
+GameBoyAdvanceIRQ.prototype.writeIE8_1 = function (data) {
+    data = data | 0;
+    this.IOCore.updateCoreClocking();
+    var oldValue = this.interruptsEnabled & 0xFF;
+    data = (data & 0x3F) << 8;
+    data = data | oldValue;
+    this.interruptsEnabled = data | 0;
+    this.checkForIRQFire();
+    this.IOCore.updateCoreEventTime();
+}
+GameBoyAdvanceIRQ.prototype.writeIE16 = function (data) {
+    data = data | 0;
+    this.IOCore.updateCoreClocking();
+    this.interruptsEnabled = data & 0x3FFF;
+    this.checkForIRQFire();
+    this.IOCore.updateCoreEventTime();
+}
+GameBoyAdvanceIRQ.prototype.writeIF8_0 = function (data) {
+    data = data | 0;
+    this.IOCore.updateCoreClocking();
+    data = ~(data & 0xFF);
+    this.interruptsRequested = this.interruptsRequested & data;
+    this.checkForIRQFire();
+    this.IOCore.updateCoreEventTime();
+}
+GameBoyAdvanceIRQ.prototype.writeIF8_1 = function (data) {
+    data = data | 0;
+    this.IOCore.updateCoreClocking();
+    data = ~((data & 0xFF) << 8);
+    this.interruptsRequested = this.interruptsRequested & data;
+    this.checkForIRQFire();
+    this.IOCore.updateCoreEventTime();
+}
+GameBoyAdvanceIRQ.prototype.writeIF16 = function (data) {
+    data = data | 0;
+    this.IOCore.updateCoreClocking();
+    data = ~data;
+    this.interruptsRequested = this.interruptsRequested & data;
+    this.checkForIRQFire();
+    this.IOCore.updateCoreEventTime();
+}
+GameBoyAdvanceIRQ.prototype.writeIRQ32 = function (data) {
+    data = data | 0;
+    this.IOCore.updateCoreClocking();
+    this.interruptsEnabled = data & 0x3FFF;
+    data = ~(data >> 16);
+    this.interruptsRequested = this.interruptsRequested & data;
+    this.checkForIRQFire();
+    this.IOCore.updateCoreEventTime();
+}
 GameBoyAdvanceIRQ.prototype.readIME = function () {
-    return this.IME & 0x1;
+    var data = this.IME & 0x1;
+    return data | 0;
 }
-GameBoyAdvanceIRQ.prototype.writeIE0 = function (data) {
-    data = data | 0;
-    this.interruptsEnabled &= 0x3F00;
-    this.interruptsEnabled |= data | 0;
-    this.checkForIRQFire();
+GameBoyAdvanceIRQ.prototype.readIE8_0 = function () {
+    var data = this.interruptsEnabled & 0xFF;
+    return data | 0;
 }
-GameBoyAdvanceIRQ.prototype.readIE0 = function () {
-    return this.interruptsEnabled & 0xFF;
+GameBoyAdvanceIRQ.prototype.readIE8_1 = function () {
+    var data = this.interruptsEnabled >> 8;
+    return data | 0;
 }
-GameBoyAdvanceIRQ.prototype.writeIE1 = function (data) {
-    data = data | 0;
-    this.interruptsEnabled &= 0xFF;
-    this.interruptsEnabled |= (data << 8) & 0x3F00;
-    this.checkForIRQFire();
+GameBoyAdvanceIRQ.prototype.readIE16 = function () {
+    var data = this.interruptsEnabled | 0;
+    return data | 0;
 }
-GameBoyAdvanceIRQ.prototype.readIE1 = function () {
-    return this.interruptsEnabled >> 8;
+GameBoyAdvanceIRQ.prototype.readIF8_0 = function () {
+    this.IOCore.updateCoreSpillRetain();
+    var data = this.interruptsRequested & 0xFF;
+    return data | 0;
 }
-GameBoyAdvanceIRQ.prototype.writeIF0 = function (data) {
-    data = data | 0;
-    this.interruptsRequested &= ~data;
-    this.checkForIRQFire();
+GameBoyAdvanceIRQ.prototype.readIF8_1 = function () {
+    this.IOCore.updateCoreSpillRetain();
+    var data = this.interruptsRequested >> 8;
+    return data | 0;
 }
-GameBoyAdvanceIRQ.prototype.readIF0 = function () {
-    return this.interruptsRequested & 0xFF;
+GameBoyAdvanceIRQ.prototype.readIF16 = function () {
+    this.IOCore.updateCoreSpillRetain();
+    var data = this.interruptsRequested | 0;
+    return data | 0;
 }
-GameBoyAdvanceIRQ.prototype.writeIF1 = function (data) {
-    data = data | 0;
-    this.interruptsRequested &= ~(data << 8);
-    this.checkForIRQFire();
-}
-GameBoyAdvanceIRQ.prototype.readIF1 = function () {
-    return this.interruptsRequested >> 8;
+GameBoyAdvanceIRQ.prototype.readIRQ32 = function () {
+    this.IOCore.updateCoreSpillRetain();
+    var data = (this.interruptsRequested << 16) | this.interruptsEnabled;
+    return data | 0;
 }
 GameBoyAdvanceIRQ.prototype.nextEventTime = function () {
     var clocks = 0x7FFFFFFF;
-    clocks = this.findClosestEvent(clocks | 0, this.gfx.nextVBlankIRQEventTime() | 0, 0x1) | 0;
-    clocks = this.findClosestEvent(clocks | 0, this.gfx.nextHBlankIRQEventTime() | 0, 0x2) | 0;
-    clocks = this.findClosestEvent(clocks | 0, this.gfx.nextVCounterIRQEventTime() | 0, 0x4) | 0;
-    clocks = this.findClosestEvent(clocks | 0, this.timer.nextTimer0IRQEventTime() | 0, 0x8) | 0;
-    clocks = this.findClosestEvent(clocks | 0, this.timer.nextTimer1IRQEventTime() | 0, 0x10) | 0;
-    clocks = this.findClosestEvent(clocks | 0, this.timer.nextTimer2IRQEventTime() | 0, 0x20) | 0;
-    clocks = this.findClosestEvent(clocks | 0, this.timer.nextTimer3IRQEventTime() | 0, 0x40) | 0;
-    //clocks = this.findClosestEvent(clocks | 0, this.IOCore.serial.nextIRQEventTime() | 0, 0x80) | 0;
-    //clocks = this.findClosestEvent(clocks | 0, this.IOCore.cartridge.nextIRQEventTime() | 0, 0x2000) | 0;
+    if ((this.interruptsEnabled & 0x1) != 0) {
+        clocks = this.gfx.nextVBlankIRQEventTime() | 0;
+    }
+    if ((this.interruptsEnabled & 0x2) != 0) {
+        clocks = Math.min(clocks | 0, this.gfx.nextHBlankIRQEventTime() | 0) | 0;
+    }
+    if ((this.interruptsEnabled & 0x4) != 0) {
+        clocks = Math.min(clocks | 0, this.gfx.nextVCounterIRQEventTime() | 0) | 0;
+    }
+    if ((this.interruptsEnabled & 0x8) != 0) {
+        clocks = Math.min(clocks | 0, this.timer.nextTimer0IRQEventTime() | 0) | 0;
+    }
+    if ((this.interruptsEnabled & 0x10) != 0) {
+        clocks = Math.min(clocks | 0, this.timer.nextTimer1IRQEventTime() | 0) | 0;
+    }
+    if ((this.interruptsEnabled & 0x20) != 0) {
+        clocks = Math.min(clocks | 0, this.timer.nextTimer2IRQEventTime() | 0) | 0;
+    }
+    if ((this.interruptsEnabled & 0x40) != 0) {
+        clocks = Math.min(clocks | 0, this.timer.nextTimer3IRQEventTime() | 0) | 0;
+    }
+    /*if ((this.interruptsEnabled & 0x80) != 0) {
+        clocks = Math.min(clocks | 0, this.IOCore.serial.nextIRQEventTime() | 0) | 0;
+    }
+    if ((this.interruptsEnabled & 0x2000) != 0) {
+        clocks = Math.min(clocks | 0, this.IOCore.cartridge.nextIRQEventTime() | 0) | 0;
+    }*/
     return clocks | 0;
 }
 GameBoyAdvanceIRQ.prototype.nextIRQEventTime = function () {
@@ -107,13 +184,4 @@ GameBoyAdvanceIRQ.prototype.nextIRQEventTime = function () {
         clocks = this.nextEventTime() | 0;
     }
     return clocks | 0;
-}
-GameBoyAdvanceIRQ.prototype.findClosestEvent = function (oldClocks, newClocks, flagID) {
-    oldClocks = oldClocks | 0;
-    newClocks = newClocks | 0;
-    flagID = flagID | 0;
-    if ((this.interruptsEnabled & flagID) != 0) {
-        oldClocks = Math.min(oldClocks | 0, newClocks | 0) | 0;
-    }
-    return oldClocks | 0;
 }
