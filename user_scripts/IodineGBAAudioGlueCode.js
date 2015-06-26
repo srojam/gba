@@ -1,19 +1,12 @@
 "use strict";
 /*
- * This file is part of IodineGBA
- *
- * Copyright (C) 2012-2013 Grant Galitz
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- * The full license is available at http://www.gnu.org/licenses/gpl.html
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
+ Copyright (C) 2012-2014 Grant Galitz
+ 
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ 
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ 
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 function GlueCodeMixer() {
     var parentObj = this;
@@ -35,9 +28,14 @@ GlueCodeMixer.prototype.initializeBuffer = function () {
 }
 GlueCodeMixer.prototype.appendInput = function (inUnit) {
     if (this.audio) {
-        this.outputUnits.push(inUnit);
+        for (var index = 0; index < this.outputUnits.length; index++) {
+            if (!this.outputUnits[index]) {
+                break;
+            }
+        }
+        this.outputUnits[index] = inUnit;
         this.outputUnitsValid.push(inUnit);
-        inUnit.registerStackPosition(this.outputUnits.length - 1);
+        inUnit.registerStackPosition(index);
     }
     else if (typeof inUnit.errorCallback == "function") {
         inUnit.errorCallback();
@@ -97,7 +95,6 @@ GlueCodeMixerInput.prototype.initialize = function (channelCount, sampleRate, bu
     this.buffer = new AudioBufferWrapper(this.channelCount,
                                          this.mixer.channelCount,
                                          this.bufferAmount,
-                                         this.mixer.bufferAmount,
                                          this.sampleRate,
                                          this.mixer.sampleRate);
     
@@ -130,13 +127,11 @@ GlueCodeMixerInput.prototype.unregister = function () {
 function AudioBufferWrapper(channelCount,
                             mixerChannelCount,
                             bufferAmount,
-                            mixerBufferAmount,
                             sampleRate,
                             mixerSampleRate) {
     this.channelCount = channelCount;
     this.mixerChannelCount = mixerChannelCount;
     this.bufferAmount = bufferAmount;
-    this.mixerBufferAmount = mixerBufferAmount;
     this.sampleRate = sampleRate;
     this.mixerSampleRate = mixerSampleRate;
     this.initialize();
@@ -144,7 +139,7 @@ function AudioBufferWrapper(channelCount,
 AudioBufferWrapper.prototype.initialize = function () {
     this.inBufferSize = this.bufferAmount * this.mixerChannelCount;
     this.inBuffer = getFloat32Array(this.inBufferSize);
-    this.outBufferSize = (this.inBufferSize * Math.ceil(this.mixerSampleRate / this.sampleRate)) + this.mixerChannelCount;
+    this.outBufferSize = (Math.ceil(this.inBufferSize * this.mixerSampleRate / this.sampleRate / this.mixerChannelCount) * this.mixerChannelCount) + this.mixerChannelCount;
     this.outBuffer = getFloat32Array(this.outBufferSize);
     this.resampler = new Resampler(this.sampleRate, this.mixerSampleRate, this.mixerChannelCount, this.outBufferSize, true);
     this.inputOffset = 0;
@@ -182,53 +177,53 @@ AudioBufferWrapper.prototype.shift = function () {
     if (this.resampleBufferStart != this.resampleBufferEnd) {
         output = this.outBuffer[this.resampleBufferStart++];
         if (this.resampleBufferStart == this.outBufferSize) {
-			this.resampleBufferStart = 0;
-		}
+            this.resampleBufferStart = 0;
+        }
     }
     return output;
 }
 AudioBufferWrapper.prototype.resampleRefill = function () {
-	if (this.inputOffset > 0) {
-		//Resample a chunk of audio:
-		var resampleLength = this.resampler.resampler(this.getSlice(this.inBuffer, this.inputOffset));
-		var resampledResult = this.resampler.outputBuffer;
-		for (var index2 = 0; index2 < resampleLength;) {
-			this.outBuffer[this.resampleBufferEnd++] = resampledResult[index2++];
-			if (this.resampleBufferEnd == this.outBufferSize) {
-				this.resampleBufferEnd = 0;
-			}
-			if (this.resampleBufferStart == this.resampleBufferEnd) {
-				this.resampleBufferStart += this.mixerChannelCount;
-				if (this.resampleBufferStart == this.outBufferSize) {
-					this.resampleBufferStart = 0;
-				}
-			}
-		}
-		this.inputOffset = 0;
-	}
+    if (this.inputOffset > 0) {
+        //Resample a chunk of audio:
+        var resampleLength = this.resampler.resampler(this.getSlice(this.inBuffer, this.inputOffset));
+        var resampledResult = this.resampler.outputBuffer;
+        for (var index2 = 0; index2 < resampleLength;) {
+            this.outBuffer[this.resampleBufferEnd++] = resampledResult[index2++];
+            if (this.resampleBufferEnd == this.outBufferSize) {
+                this.resampleBufferEnd = 0;
+            }
+            if (this.resampleBufferStart == this.resampleBufferEnd) {
+                this.resampleBufferStart += this.mixerChannelCount;
+                if (this.resampleBufferStart == this.outBufferSize) {
+                    this.resampleBufferStart = 0;
+                }
+            }
+        }
+        this.inputOffset = 0;
+    }
 }
 AudioBufferWrapper.prototype.remainingBuffer = function () {
     return (Math.floor((this.resampledSamplesLeft() * this.resampler.ratioWeight) / this.mixerChannelCount) * this.mixerChannelCount) + this.inputOffset;
 }
 AudioBufferWrapper.prototype.resampledSamplesLeft = function () {
-	return ((this.resampleBufferStart <= this.resampleBufferEnd) ? 0 : this.outBufferSize) + this.resampleBufferEnd - this.resampleBufferStart;
+    return ((this.resampleBufferStart <= this.resampleBufferEnd) ? 0 : this.outBufferSize) + this.resampleBufferEnd - this.resampleBufferStart;
 }
 AudioBufferWrapper.prototype.getSlice = function (buffer, lengthOf) {
-	//Typed array and normal array buffer section referencing:
-	try {
-		return buffer.subarray(0, lengthOf);
-	}
-	catch (error) {
-		try {
-			//Regular array pass:
-			buffer.length = lengthOf;
-			return buffer;
-		}
-		catch (error) {
-			//Nightly Firefox 4 used to have the subarray function named as slice:
-			return buffer.slice(0, lengthOf);
-		}
-	}
+    //Typed array and normal array buffer section referencing:
+    try {
+        return buffer.subarray(0, lengthOf);
+    }
+    catch (error) {
+        try {
+            //Regular array pass:
+            buffer.length = lengthOf;
+            return buffer;
+        }
+        catch (error) {
+            //Nightly Firefox 4 used to have the subarray function named as slice:
+            return buffer.slice(0, lengthOf);
+        }
+    }
 }
 function AudioSimpleBuffer(channelCount, bufferAmount) {
     this.channelCount = channelCount;
@@ -243,21 +238,21 @@ AudioSimpleBuffer.prototype.push = function (data) {
     }
 }
 AudioSimpleBuffer.prototype.getSlice = function () {
-	var lengthOf = this.stackLength;
+    var lengthOf = this.stackLength;
     this.stackLength = 0;
     //Typed array and normal array buffer section referencing:
-	try {
-		return this.buffer.subarray(0, lengthOf);
-	}
-	catch (error) {
-		try {
-			//Regular array pass:
-			this.buffer.length = lengthOf;
-			return this.buffer;
-		}
-		catch (error) {
-			//Nightly Firefox 4 used to have the subarray function named as slice:
-			return this.buffer.slice(0, lengthOf);
-		}
-	}
+    try {
+        return this.buffer.subarray(0, lengthOf);
+    }
+    catch (error) {
+        try {
+            //Regular array pass:
+            this.buffer.length = lengthOf;
+            return this.buffer;
+        }
+        catch (error) {
+            //Nightly Firefox 4 used to have the subarray function named as slice:
+            return this.buffer.slice(0, lengthOf);
+        }
+    }
 }

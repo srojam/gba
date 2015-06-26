@@ -1,71 +1,66 @@
 "use strict";
 /*
- * This file is part of IodineGBA
- *
- * Copyright (C) 2012-2013 Grant Galitz
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- * The full license is available at http://www.gnu.org/licenses/gpl.html
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
+ Copyright (C) 2012-2015 Grant Galitz
+ 
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ 
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ 
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 var keyZones = [
     //Use this to control the key mapping:
-                ["right", [39]],
-                ["left", [37]],
-                ["up", [38]],
-                ["down", [40]],
-                ["a", [88, 74]],
-                ["b", [90, 81, 89]],
-                ["select", [16]],
-                ["start", [13]],
-                ["r", [50]],
-                ["l", [49]]
+                //A:
+                [88, 74],
+                //B:
+                [90, 81, 89],
+                //Select:
+                [16],
+                //Start:
+                [13],
+                //Right:
+                [39],
+                //Left:
+                [37],
+                //Up:
+                [38],
+                //Down:
+                [40],
+                //R:
+                [50],
+                //L:
+                [49]
 ];
-function keyDown(event) {
-    var keyCode = event.keyCode;
-    var keyMapLength = keyZones.length;
-    for (var keyMapIndex = 0; keyMapIndex < keyMapLength; ++keyMapIndex) {
-        var keyCheck = keyZones[keyMapIndex];
-        var keysMapped = keyCheck[1];
-        var keysTotal = keysMapped.length;
-        for (var index = 0; index < keysTotal; ++index) {
-            if (keysMapped[index] == keyCode) {
-                Iodine.keyDown(keyCheck[0]);
-                try {
-                    event.preventDefault();
+function keyDown(e) {
+    var keyCode = e.keyCode | 0;
+    for (var keyMapIndex = 0; (keyMapIndex | 0) < 10; keyMapIndex = ((keyMapIndex | 0) + 1) | 0) {
+        var keysMapped = keyZones[keyMapIndex | 0];
+        var keysTotal = keysMapped.length | 0;
+        for (var matchingIndex = 0; (matchingIndex | 0) < (keysTotal | 0); matchingIndex = ((matchingIndex | 0) + 1) | 0) {
+            if ((keysMapped[matchingIndex | 0] | 0) == (keyCode | 0)) {
+                Iodine.keyDown(keyMapIndex | 0);
+                if (e.preventDefault) {
+                    e.preventDefault();
                 }
-                catch (error) { }
             }
         }
     }
 }
-function keyUp(event) {
-    var keyCode = event.keyCode;
-    var keyMapLength = keyZones.length;
-    for (var keyMapIndex = 0; keyMapIndex < keyMapLength; ++keyMapIndex) {
-        var keyCheck = keyZones[keyMapIndex];
-        var keysMapped = keyCheck[1];
-        var keysTotal = keysMapped.length;
-        for (var index = 0; index < keysTotal; ++index) {
-            if (keysMapped[index] == keyCode) {
-                Iodine.keyUp(keyCheck[0]);
-                try {
-                    event.preventDefault();
-                }
-                catch (error) { }
+function keyUp(keyCode) {
+    keyCode = keyCode | 0;
+    for (var keyMapIndex = 0; (keyMapIndex | 0) < 10; keyMapIndex = ((keyMapIndex | 0) + 1) | 0) {
+        var keysMapped = keyZones[keyMapIndex | 0];
+        var keysTotal = keysMapped.length | 0;
+        for (var matchingIndex = 0; (matchingIndex | 0) < (keysTotal | 0); matchingIndex = ((matchingIndex | 0) + 1) | 0) {
+            if ((keysMapped[matchingIndex | 0] | 0) == (keyCode | 0)) {
+                Iodine.keyUp(keyMapIndex | 0);
             }
         }
     }
 }
-function keyUpPreprocess(event) {
-    switch (event.keyCode) {
+function keyUpPreprocess(e) {
+    var keyCode = e.keyCode | 0;
+    switch (keyCode | 0) {
         case 68:
             lowerVolume();
             break;
@@ -80,6 +75,6 @@ function keyUpPreprocess(event) {
             break;
         default:
             //Control keys / other
-            keyUp(event);
+            keyUp(keyCode);
     }
 }
