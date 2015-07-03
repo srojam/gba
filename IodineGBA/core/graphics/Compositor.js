@@ -10,112 +10,146 @@
  */
 function GameBoyAdvanceCompositor(gfx) {
     this.gfx = gfx;
+    this.doEffects = 0;
 }
-GameBoyAdvanceCompositor.prototype.initialize = function () {
-    this.colorEffectsRenderer = this.gfx.colorEffectsRenderer;
+if (__VIEWS_SUPPORTED__) {
+    GameBoyAdvanceCompositor.prototype.initialize = function () {
+        this.buffer = this.gfx.buffer;
+        this.layerStack = getInt32ViewCustom(this.gfx.buffer, 240, 245);
+        this.colorEffectsRenderer = this.gfx.colorEffectsRenderer;
+    }
+}
+else {
+    GameBoyAdvanceCompositor.prototype.initialize = function () {
+        this.buffer = this.gfx.buffer;
+        this.layerStack = getInt32Array(5);
+        this.colorEffectsRenderer = this.gfx.colorEffectsRenderer;
+    }
 }
 GameBoyAdvanceCompositor.prototype.preprocess = function (doEffects) {
     doEffects = doEffects | 0;
-    if ((doEffects | 0) != 0) {
-        this.renderScanLine = this.renderScanLineWithEffects;
-    }
-    else {
-        this.renderScanLine = this.renderNormalScanLine;
-    }
+    this.doEffects = doEffects | 0;
 }
 GameBoyAdvanceCompositor.prototype.cleanLayerStack = function (OBJBuffer, BG0Buffer, BG1Buffer, BG2Buffer, BG3Buffer) {
+    OBJBuffer = OBJBuffer | 0;
+    BG0Buffer = BG0Buffer | 0;
+    BG1Buffer = BG1Buffer | 0;
+    BG2Buffer = BG2Buffer | 0;
+    BG3Buffer = BG3Buffer | 0;
     //Clear out disabled layers from our stack:
-    var layerStack = [];
-    if (BG3Buffer) {
-        layerStack.push(BG3Buffer);
+    var layerCount = 0;
+    if ((BG3Buffer | 0) != 0) {
+        this.layerStack[0] = BG3Buffer | 0;
+        layerCount = 1;
     }
-    if (BG2Buffer) {
-        layerStack.push(BG2Buffer);
+    if ((BG2Buffer | 0) != 0) {
+        this.layerStack[layerCount | 0] = BG2Buffer | 0;
+        layerCount = ((layerCount | 0) + 1) | 0;
     }
-    if (BG1Buffer) {
-        layerStack.push(BG1Buffer);
+    if ((BG1Buffer | 0) != 0) {
+        this.layerStack[layerCount | 0] = BG1Buffer | 0;
+        layerCount = ((layerCount | 0) + 1) | 0;
     }
-    if (BG0Buffer) {
-        layerStack.push(BG0Buffer);
+    if ((BG0Buffer | 0) != 0) {
+        this.layerStack[layerCount | 0] = BG0Buffer | 0;
+        layerCount = ((layerCount | 0) + 1) | 0;
     }
-    if (OBJBuffer) {
-        layerStack.push(OBJBuffer);
+    if ((OBJBuffer | 0) != 0) {
+        this.layerStack[layerCount | 0] = OBJBuffer | 0;
+        layerCount = ((layerCount | 0) + 1) | 0;
     }
-    return layerStack;
+    return layerCount | 0;
 }
-GameBoyAdvanceCompositor.prototype.renderNormalScanLine = function (xStart, xEnd, lineBuffer, OBJBuffer, BG0Buffer, BG1Buffer, BG2Buffer, BG3Buffer) {
+GameBoyAdvanceCompositor.prototype.renderScanLine = function (xStart, xEnd, OBJBuffer, BG0Buffer, BG1Buffer, BG2Buffer, BG3Buffer) {
     xStart = xStart | 0;
     xEnd = xEnd | 0;
-    var layerStack = this.cleanLayerStack(OBJBuffer, BG0Buffer, BG1Buffer, BG2Buffer, BG3Buffer);
-    switch (layerStack.length) {
+    OBJBuffer = OBJBuffer | 0;
+    BG0Buffer = BG0Buffer | 0;
+    BG1Buffer = BG1Buffer | 0;
+    BG2Buffer = BG2Buffer | 0;
+    BG3Buffer = BG3Buffer | 0;
+    var layerCount = this.cleanLayerStack(OBJBuffer | 0, BG0Buffer | 0, BG1Buffer | 0, BG2Buffer | 0, BG3Buffer | 0) | 0;
+    if ((this.doEffects | 0) == 0) {
+        this.renderNormalScanLine(xStart | 0, xEnd | 0, layerCount | 0);
+    }
+    else {
+        this.renderScanLineWithEffects(xStart | 0, xEnd | 0, layerCount | 0);
+    }
+}
+GameBoyAdvanceCompositor.prototype.renderNormalScanLine = function (xStart, xEnd, layerCount) {
+    xStart = xStart | 0;
+    xEnd = xEnd | 0;
+    layerCount = layerCount | 0;
+    switch (layerCount | 0) {
         case 0:
-            this.fillWithBackdrop(xStart | 0, xEnd | 0, lineBuffer);
+            this.fillWithBackdrop(xStart | 0, xEnd | 0);
             break;
         case 1:
-            this.composite1Layer(xStart | 0, xEnd | 0, lineBuffer, layerStack[0]);
+            this.composite1Layer(xStart | 0, xEnd | 0, this.layerStack[0] | 0);
             break;
         case 2:
-            this.composite2Layer(xStart | 0, xEnd | 0, lineBuffer, layerStack[0], layerStack[1]);
+            this.composite2Layer(xStart | 0, xEnd | 0, this.layerStack[0] | 0, this.layerStack[1] | 0);
             break;
         case 3:
-            this.composite3Layer(xStart | 0, xEnd | 0, lineBuffer, layerStack[0], layerStack[1], layerStack[2]);
+            this.composite3Layer(xStart | 0, xEnd | 0, this.layerStack[0] | 0, this.layerStack[1] | 0, this.layerStack[2] | 0);
             break;
         case 4:
-            this.composite4Layer(xStart | 0, xEnd | 0, lineBuffer, layerStack[0], layerStack[1], layerStack[2], layerStack[3]);
+            this.composite4Layer(xStart | 0, xEnd | 0, this.layerStack[0] | 0, this.layerStack[1] | 0, this.layerStack[2] | 0, this.layerStack[3] | 0);
             break;
-        case 5:
-            this.composite5Layer(xStart | 0, xEnd | 0, lineBuffer, layerStack[0], layerStack[1], layerStack[2], layerStack[3], layerStack[4]);
+        default:
+            this.composite5Layer(xStart | 0, xEnd | 0, this.layerStack[0] | 0, this.layerStack[1] | 0, this.layerStack[2] | 0, this.layerStack[3] | 0, this.layerStack[4] | 0);
     }
 }
-GameBoyAdvanceCompositor.prototype.renderScanLineWithEffects = function (xStart, xEnd, lineBuffer, OBJBuffer, BG0Buffer, BG1Buffer, BG2Buffer, BG3Buffer) {
+GameBoyAdvanceCompositor.prototype.renderScanLineWithEffects = function (xStart, xEnd, layerCount) {
     xStart = xStart | 0;
     xEnd = xEnd | 0;
-    var layerStack = this.cleanLayerStack(OBJBuffer, BG0Buffer, BG1Buffer, BG2Buffer, BG3Buffer);
-    switch (layerStack.length) {
+    layerCount = layerCount | 0;
+    switch (layerCount | 0) {
         case 0:
-            this.fillWithBackdropSpecial(xStart | 0, xEnd | 0, lineBuffer);
+            this.fillWithBackdropSpecial(xStart | 0, xEnd | 0);
             break;
         case 1:
-            this.composite1LayerSpecial(xStart | 0, xEnd | 0, lineBuffer, layerStack[0]);
+            this.composite1LayerSpecial(xStart | 0, xEnd | 0, this.layerStack[0] | 0);
             break;
         case 2:
-            this.composite2LayerSpecial(xStart | 0, xEnd | 0, lineBuffer, layerStack[0], layerStack[1]);
+            this.composite2LayerSpecial(xStart | 0, xEnd | 0, this.layerStack[0] | 0, this.layerStack[1] | 0);
             break;
         case 3:
-            this.composite3LayerSpecial(xStart | 0, xEnd | 0, lineBuffer, layerStack[0], layerStack[1], layerStack[2]);
+            this.composite3LayerSpecial(xStart | 0, xEnd | 0, this.layerStack[0] | 0, this.layerStack[1] | 0, this.layerStack[2] | 0);
             break;
         case 4:
-            this.composite4LayerSpecial(xStart | 0, xEnd | 0, lineBuffer, layerStack[0], layerStack[1], layerStack[2], layerStack[3]);
+            this.composite4LayerSpecial(xStart | 0, xEnd | 0, this.layerStack[0] | 0, this.layerStack[1] | 0, this.layerStack[2] | 0, this.layerStack[3] | 0);
             break;
-        case 5:
-            this.composite5LayerSpecial(xStart | 0, xEnd | 0, lineBuffer, layerStack[0], layerStack[1], layerStack[2], layerStack[3], layerStack[4]);
+        default:
+            this.composite5LayerSpecial(xStart | 0, xEnd | 0, this.layerStack[0] | 0, this.layerStack[1] | 0, this.layerStack[2] | 0, this.layerStack[3] | 0, this.layerStack[4] | 0);
     }
 }
-GameBoyAdvanceCompositor.prototype.fillWithBackdrop = function (xStart, xEnd, lineBuffer) {
+GameBoyAdvanceCompositor.prototype.fillWithBackdrop = function (xStart, xEnd) {
     xStart = xStart | 0;
     xEnd = xEnd | 0;
     while ((xStart | 0) < (xEnd | 0)) {
-        lineBuffer[xStart | 0] = this.gfx.backdrop | 0;
+        this.buffer[xStart | 0] = this.gfx.backdrop | 0;
         xStart = ((xStart | 0) + 1) | 0;
     }
 }
-GameBoyAdvanceCompositor.prototype.fillWithBackdropSpecial = function (xStart, xEnd, lineBuffer) {
+GameBoyAdvanceCompositor.prototype.fillWithBackdropSpecial = function (xStart, xEnd) {
     xStart = xStart | 0;
     xEnd = xEnd | 0;
     while ((xStart | 0) < (xEnd | 0)) {
-        lineBuffer[xStart | 0] = this.colorEffectsRenderer.process(0, this.gfx.backdrop | 0) | 0;
+        this.buffer[xStart | 0] = this.colorEffectsRenderer.process(0, this.gfx.backdrop | 0) | 0;
         xStart = ((xStart | 0) + 1) | 0;
     }
 }
-GameBoyAdvanceCompositor.prototype.composite1Layer = function (xStart, xEnd, lineBuffer, layer0) {
+GameBoyAdvanceCompositor.prototype.composite1Layer = function (xStart, xEnd, layer0) {
     xStart = xStart | 0;
     xEnd = xEnd | 0;
+    layer0 = layer0 | 0;
     var currentPixel = 0;
     var lowerPixel = 0;
     var workingPixel = 0;
     while ((xStart | 0) < (xEnd | 0)) {
         lowerPixel = currentPixel = this.gfx.backdrop | 0;
-        workingPixel = layer0[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer0] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -125,25 +159,27 @@ GameBoyAdvanceCompositor.prototype.composite1Layer = function (xStart, xEnd, lin
         }
         if ((currentPixel & 0x400000) == 0) {
             //Normal Pixel:
-            lineBuffer[xStart | 0] = currentPixel | 0;
+            this.buffer[xStart | 0] = currentPixel | 0;
         }
         else {
             //OAM Pixel Processing:
             //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
         }
         xStart = ((xStart | 0) + 1) | 0;
     }
 }
-GameBoyAdvanceCompositor.prototype.composite2Layer = function (xStart, xEnd, lineBuffer, layer0, layer1) {
+GameBoyAdvanceCompositor.prototype.composite2Layer = function (xStart, xEnd, layer0, layer1) {
     xStart = xStart | 0;
     xEnd = xEnd | 0;
+    layer0 = layer0 | 0;
+    layer1 = layer1 | 0;
     var currentPixel = 0;
     var lowerPixel = 0;
     var workingPixel = 0;
     while ((xStart | 0) < (xEnd | 0)) {
         lowerPixel = currentPixel = this.gfx.backdrop | 0;
-        workingPixel = layer0[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer0] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -151,7 +187,7 @@ GameBoyAdvanceCompositor.prototype.composite2Layer = function (xStart, xEnd, lin
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer1[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer1] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -161,25 +197,28 @@ GameBoyAdvanceCompositor.prototype.composite2Layer = function (xStart, xEnd, lin
         }
         if ((currentPixel & 0x400000) == 0) {
             //Normal Pixel:
-            lineBuffer[xStart | 0] = currentPixel | 0;
+            this.buffer[xStart | 0] = currentPixel | 0;
         }
         else {
             //OAM Pixel Processing:
             //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
         }
         xStart = ((xStart | 0) + 1) | 0;
     }
 }
-GameBoyAdvanceCompositor.prototype.composite3Layer = function (xStart, xEnd, lineBuffer, layer0, layer1, layer2) {
+GameBoyAdvanceCompositor.prototype.composite3Layer = function (xStart, xEnd, layer0, layer1, layer2) {
     xStart = xStart | 0;
     xEnd = xEnd | 0;
+    layer0 = layer0 | 0;
+    layer1 = layer1 | 0;
+    layer2 = layer2 | 0;
     var currentPixel = 0;
     var lowerPixel = 0;
     var workingPixel = 0;
     while ((xStart | 0) < (xEnd | 0)) {
         lowerPixel = currentPixel = this.gfx.backdrop | 0;
-        workingPixel = layer0[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer0] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -187,7 +226,7 @@ GameBoyAdvanceCompositor.prototype.composite3Layer = function (xStart, xEnd, lin
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer1[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer1] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -195,7 +234,7 @@ GameBoyAdvanceCompositor.prototype.composite3Layer = function (xStart, xEnd, lin
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer2[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer2] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -205,25 +244,29 @@ GameBoyAdvanceCompositor.prototype.composite3Layer = function (xStart, xEnd, lin
         }
         if ((currentPixel & 0x400000) == 0) {
             //Normal Pixel:
-            lineBuffer[xStart | 0] = currentPixel | 0;
+            this.buffer[xStart | 0] = currentPixel | 0;
         }
         else {
             //OAM Pixel Processing:
             //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
         }
         xStart = ((xStart | 0) + 1) | 0;
     }
 }
-GameBoyAdvanceCompositor.prototype.composite4Layer = function (xStart, xEnd, lineBuffer, layer0, layer1, layer2, layer3) {
+GameBoyAdvanceCompositor.prototype.composite4Layer = function (xStart, xEnd, layer0, layer1, layer2, layer3) {
     xStart = xStart | 0;
     xEnd = xEnd | 0;
+    layer0 = layer0 | 0;
+    layer1 = layer1 | 0;
+    layer2 = layer2 | 0;
+    layer3 = layer3 | 0;
     var currentPixel = 0;
     var lowerPixel = 0;
     var workingPixel = 0;
     while ((xStart | 0) < (xEnd | 0)) {
         lowerPixel = currentPixel = this.gfx.backdrop | 0;
-        workingPixel = layer0[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer0] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -231,7 +274,7 @@ GameBoyAdvanceCompositor.prototype.composite4Layer = function (xStart, xEnd, lin
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer1[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer1] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -239,7 +282,7 @@ GameBoyAdvanceCompositor.prototype.composite4Layer = function (xStart, xEnd, lin
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer2[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer2] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -247,7 +290,7 @@ GameBoyAdvanceCompositor.prototype.composite4Layer = function (xStart, xEnd, lin
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer3[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer3] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -257,25 +300,30 @@ GameBoyAdvanceCompositor.prototype.composite4Layer = function (xStart, xEnd, lin
         }
         if ((currentPixel & 0x400000) == 0) {
             //Normal Pixel:
-            lineBuffer[xStart | 0] = currentPixel | 0;
+            this.buffer[xStart | 0] = currentPixel | 0;
         }
         else {
             //OAM Pixel Processing:
             //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
         }
         xStart = ((xStart | 0) + 1) | 0;
     }
 }
-GameBoyAdvanceCompositor.prototype.composite5Layer = function (xStart, xEnd, lineBuffer, layer0, layer1, layer2, layer3, layer4) {
+GameBoyAdvanceCompositor.prototype.composite5Layer = function (xStart, xEnd, layer0, layer1, layer2, layer3, layer4) {
     xStart = xStart | 0;
     xEnd = xEnd | 0;
+    layer0 = layer0 | 0;
+    layer1 = layer1 | 0;
+    layer2 = layer2 | 0;
+    layer3 = layer3 | 0;
+    layer4 = layer4 | 0;
     var currentPixel = 0;
     var lowerPixel = 0;
     var workingPixel = 0;
     while ((xStart | 0) < (xEnd | 0)) {
         lowerPixel = currentPixel = this.gfx.backdrop | 0;
-        workingPixel = layer0[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer0] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -283,7 +331,7 @@ GameBoyAdvanceCompositor.prototype.composite5Layer = function (xStart, xEnd, lin
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer1[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer1] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -291,7 +339,7 @@ GameBoyAdvanceCompositor.prototype.composite5Layer = function (xStart, xEnd, lin
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer2[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer2] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -299,7 +347,7 @@ GameBoyAdvanceCompositor.prototype.composite5Layer = function (xStart, xEnd, lin
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer3[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer3] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -307,7 +355,7 @@ GameBoyAdvanceCompositor.prototype.composite5Layer = function (xStart, xEnd, lin
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer4[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer4] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -317,62 +365,26 @@ GameBoyAdvanceCompositor.prototype.composite5Layer = function (xStart, xEnd, lin
         }
         if ((currentPixel & 0x400000) == 0) {
             //Normal Pixel:
-            lineBuffer[xStart | 0] = currentPixel | 0;
+            this.buffer[xStart | 0] = currentPixel | 0;
         }
         else {
             //OAM Pixel Processing:
             //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
         }
         xStart = ((xStart | 0) + 1) | 0;
     }
 }
-GameBoyAdvanceCompositor.prototype.composite1LayerSpecial = function (xStart, xEnd, lineBuffer, layer0) {
+GameBoyAdvanceCompositor.prototype.composite1LayerSpecial = function (xStart, xEnd, layer0) {
     xStart = xStart | 0;
     xEnd = xEnd | 0;
+    layer0 = layer0 | 0;
     var currentPixel = 0;
     var lowerPixel = 0;
     var workingPixel = 0;
     while ((xStart | 0) < (xEnd | 0)) {
         lowerPixel = currentPixel = this.gfx.backdrop | 0;
-        workingPixel = layer0[xStart | 0] | 0;
-        if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
-            lowerPixel = currentPixel | 0;
-            currentPixel = workingPixel | 0;
-        }
-        else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
-            lowerPixel = workingPixel | 0;
-        }
-        if ((currentPixel & 0x400000) == 0) {
-            //Normal Pixel:
-            //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.process(lowerPixel | 0, currentPixel | 0) | 0;
-        }
-        else {
-            //OAM Pixel Processing:
-            //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
-        }
-        xStart = ((xStart | 0) + 1) | 0;
-    }
-}
-GameBoyAdvanceCompositor.prototype.composite2LayerSpecial = function (xStart, xEnd, lineBuffer, layer0, layer1) {
-    xStart = xStart | 0;
-    xEnd = xEnd | 0;
-    var currentPixel = 0;
-    var lowerPixel = 0;
-    var workingPixel = 0;
-    while ((xStart | 0) < (xEnd | 0)) {
-        lowerPixel = currentPixel = this.gfx.backdrop | 0;
-        workingPixel = layer0[xStart | 0] | 0;
-        if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
-            lowerPixel = currentPixel | 0;
-            currentPixel = workingPixel | 0;
-        }
-        else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
-            lowerPixel = workingPixel | 0;
-        }
-        workingPixel = layer1[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer0] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -383,25 +395,27 @@ GameBoyAdvanceCompositor.prototype.composite2LayerSpecial = function (xStart, xE
         if ((currentPixel & 0x400000) == 0) {
             //Normal Pixel:
             //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.process(lowerPixel | 0, currentPixel | 0) | 0;
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.process(lowerPixel | 0, currentPixel | 0) | 0;
         }
         else {
             //OAM Pixel Processing:
             //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
         }
         xStart = ((xStart | 0) + 1) | 0;
     }
 }
-GameBoyAdvanceCompositor.prototype.composite3LayerSpecial = function (xStart, xEnd, lineBuffer, layer0, layer1, layer2) {
+GameBoyAdvanceCompositor.prototype.composite2LayerSpecial = function (xStart, xEnd, layer0, layer1) {
     xStart = xStart | 0;
     xEnd = xEnd | 0;
+    layer0 = layer0 | 0;
+    layer1 = layer1 | 0;
     var currentPixel = 0;
     var lowerPixel = 0;
     var workingPixel = 0;
     while ((xStart | 0) < (xEnd | 0)) {
         lowerPixel = currentPixel = this.gfx.backdrop | 0;
-        workingPixel = layer0[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer0] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -409,15 +423,7 @@ GameBoyAdvanceCompositor.prototype.composite3LayerSpecial = function (xStart, xE
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer1[xStart | 0] | 0;
-        if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
-            lowerPixel = currentPixel | 0;
-            currentPixel = workingPixel | 0;
-        }
-        else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
-            lowerPixel = workingPixel | 0;
-        }
-        workingPixel = layer2[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer1] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -428,25 +434,28 @@ GameBoyAdvanceCompositor.prototype.composite3LayerSpecial = function (xStart, xE
         if ((currentPixel & 0x400000) == 0) {
             //Normal Pixel:
             //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.process(lowerPixel | 0, currentPixel | 0) | 0;
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.process(lowerPixel | 0, currentPixel | 0) | 0;
         }
         else {
             //OAM Pixel Processing:
             //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
         }
         xStart = ((xStart | 0) + 1) | 0;
     }
 }
-GameBoyAdvanceCompositor.prototype.composite4LayerSpecial = function (xStart, xEnd, lineBuffer, layer0, layer1, layer2, layer3) {
+GameBoyAdvanceCompositor.prototype.composite3LayerSpecial = function (xStart, xEnd, layer0, layer1, layer2) {
     xStart = xStart | 0;
     xEnd = xEnd | 0;
+    layer0 = layer0 | 0;
+    layer1 = layer1 | 0;
+    layer2 = layer2 | 0;
     var currentPixel = 0;
     var lowerPixel = 0;
     var workingPixel = 0;
     while ((xStart | 0) < (xEnd | 0)) {
         lowerPixel = currentPixel = this.gfx.backdrop | 0;
-        workingPixel = layer0[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer0] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -454,7 +463,7 @@ GameBoyAdvanceCompositor.prototype.composite4LayerSpecial = function (xStart, xE
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer1[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer1] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -462,15 +471,7 @@ GameBoyAdvanceCompositor.prototype.composite4LayerSpecial = function (xStart, xE
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer2[xStart | 0] | 0;
-        if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
-            lowerPixel = currentPixel | 0;
-            currentPixel = workingPixel | 0;
-        }
-        else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
-            lowerPixel = workingPixel | 0;
-        }
-        workingPixel = layer3[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer2] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -481,25 +482,29 @@ GameBoyAdvanceCompositor.prototype.composite4LayerSpecial = function (xStart, xE
         if ((currentPixel & 0x400000) == 0) {
             //Normal Pixel:
             //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.process(lowerPixel | 0, currentPixel | 0) | 0;
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.process(lowerPixel | 0, currentPixel | 0) | 0;
         }
         else {
             //OAM Pixel Processing:
             //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
         }
         xStart = ((xStart | 0) + 1) | 0;
     }
 }
-GameBoyAdvanceCompositor.prototype.composite5LayerSpecial = function (xStart, xEnd, lineBuffer, layer0, layer1, layer2, layer3, layer4) {
+GameBoyAdvanceCompositor.prototype.composite4LayerSpecial = function (xStart, xEnd, layer0, layer1, layer2, layer3) {
     xStart = xStart | 0;
     xEnd = xEnd | 0;
+    layer0 = layer0 | 0;
+    layer1 = layer1 | 0;
+    layer2 = layer2 | 0;
+    layer3 = layer3 | 0;
     var currentPixel = 0;
     var lowerPixel = 0;
     var workingPixel = 0;
     while ((xStart | 0) < (xEnd | 0)) {
         lowerPixel = currentPixel = this.gfx.backdrop | 0;
-        workingPixel = layer0[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer0] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -507,7 +512,7 @@ GameBoyAdvanceCompositor.prototype.composite5LayerSpecial = function (xStart, xE
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer1[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer1] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -515,7 +520,7 @@ GameBoyAdvanceCompositor.prototype.composite5LayerSpecial = function (xStart, xE
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer2[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer2] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -523,15 +528,7 @@ GameBoyAdvanceCompositor.prototype.composite5LayerSpecial = function (xStart, xE
         else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
             lowerPixel = workingPixel | 0;
         }
-        workingPixel = layer3[xStart | 0] | 0;
-        if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
-            lowerPixel = currentPixel | 0;
-            currentPixel = workingPixel | 0;
-        }
-        else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
-            lowerPixel = workingPixel | 0;
-        }
-        workingPixel = layer4[xStart | 0] | 0;
+        workingPixel = this.buffer[xStart | layer3] | 0;
         if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
             lowerPixel = currentPixel | 0;
             currentPixel = workingPixel | 0;
@@ -542,12 +539,78 @@ GameBoyAdvanceCompositor.prototype.composite5LayerSpecial = function (xStart, xE
         if ((currentPixel & 0x400000) == 0) {
             //Normal Pixel:
             //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.process(lowerPixel | 0, currentPixel | 0) | 0;
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.process(lowerPixel | 0, currentPixel | 0) | 0;
         }
         else {
             //OAM Pixel Processing:
             //Pass the highest two pixels to be arbitrated in the color effects processing:
-            lineBuffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
+        }
+        xStart = ((xStart | 0) + 1) | 0;
+    }
+}
+GameBoyAdvanceCompositor.prototype.composite5LayerSpecial = function (xStart, xEnd, layer0, layer1, layer2, layer3, layer4) {
+    xStart = xStart | 0;
+    xEnd = xEnd | 0;
+    layer0 = layer0 | 0;
+    layer1 = layer1 | 0;
+    layer2 = layer2 | 0;
+    layer3 = layer3 | 0;
+    layer4 = layer4 | 0;
+    var currentPixel = 0;
+    var lowerPixel = 0;
+    var workingPixel = 0;
+    while ((xStart | 0) < (xEnd | 0)) {
+        lowerPixel = currentPixel = this.gfx.backdrop | 0;
+        workingPixel = this.buffer[xStart | layer0] | 0;
+        if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
+            lowerPixel = currentPixel | 0;
+            currentPixel = workingPixel | 0;
+        }
+        else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
+            lowerPixel = workingPixel | 0;
+        }
+        workingPixel = this.buffer[xStart | layer1] | 0;
+        if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
+            lowerPixel = currentPixel | 0;
+            currentPixel = workingPixel | 0;
+        }
+        else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
+            lowerPixel = workingPixel | 0;
+        }
+        workingPixel = this.buffer[xStart | layer2] | 0;
+        if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
+            lowerPixel = currentPixel | 0;
+            currentPixel = workingPixel | 0;
+        }
+        else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
+            lowerPixel = workingPixel | 0;
+        }
+        workingPixel = this.buffer[xStart | layer3] | 0;
+        if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
+            lowerPixel = currentPixel | 0;
+            currentPixel = workingPixel | 0;
+        }
+        else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
+            lowerPixel = workingPixel | 0;
+        }
+        workingPixel = this.buffer[xStart | layer4] | 0;
+        if ((workingPixel & 0x3800000) <= (currentPixel & 0x1800000)) {
+            lowerPixel = currentPixel | 0;
+            currentPixel = workingPixel | 0;
+        }
+        else if ((workingPixel & 0x3800000) <= (lowerPixel & 0x1800000)) {
+            lowerPixel = workingPixel | 0;
+        }
+        if ((currentPixel & 0x400000) == 0) {
+            //Normal Pixel:
+            //Pass the highest two pixels to be arbitrated in the color effects processing:
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.process(lowerPixel | 0, currentPixel | 0) | 0;
+        }
+        else {
+            //OAM Pixel Processing:
+            //Pass the highest two pixels to be arbitrated in the color effects processing:
+            this.buffer[xStart | 0] = this.colorEffectsRenderer.processOAMSemiTransparent(lowerPixel | 0, currentPixel | 0) | 0;
         }
         xStart = ((xStart | 0) + 1) | 0;
     }

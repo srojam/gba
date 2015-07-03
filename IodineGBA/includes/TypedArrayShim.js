@@ -64,6 +64,14 @@ function getInt32View(typed_array) {
         return null;
     }
 }
+function getInt32ViewCustom(typed_array, start, end) {
+    try {
+        return typed_array.subarray(start, end);
+    }
+    catch (error) {
+        return null;
+    }
+}
 function getUint32Array(size_t) {
     try {
         return new Uint32Array(size_t);

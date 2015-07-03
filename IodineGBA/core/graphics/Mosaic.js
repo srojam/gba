@@ -8,22 +8,24 @@
  
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-function GameBoyAdvanceMosaicRenderer() {
+function GameBoyAdvanceMosaicRenderer(buffer) {
     this.BGMosaicHSize = 0;
     this.BGMosaicVSize = 0;
     this.OBJMosaicHSize = 0;
     this.OBJMosaicVSize = 0;
+    this.buffer = buffer;
 }
-GameBoyAdvanceMosaicRenderer.prototype.renderMosaicHorizontal = function (layer) {
+GameBoyAdvanceMosaicRenderer.prototype.renderMosaicHorizontal = function (offset) {
+    offset = offset | 0;
     var currentPixel = 0;
     var mosaicBlur = ((this.BGMosaicHSize | 0) + 1) | 0;
     if ((mosaicBlur | 0) > 1) {    //Don't perform a useless loop.
         for (var position = 0; (position | 0) < 240; position = ((position | 0) + 1) | 0) {
             if ((((position | 0) % (mosaicBlur | 0)) | 0) == 0) {
-                currentPixel = layer[position | 0] | 0;
+                currentPixel = this.buffer[position | offset] | 0;
             }
             else {
-                layer[position | 0] = currentPixel | 0;
+                this.buffer[position | offset] = currentPixel | 0;
             }
         }
     }
