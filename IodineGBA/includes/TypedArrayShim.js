@@ -69,7 +69,13 @@ function getInt32ViewCustom(typed_array, start, end) {
         return typed_array.subarray(start, end);
     }
     catch (error) {
-        return null;
+        try {
+            //Nightly Firefox 4 used to have the subarray function named as slice:
+            return typed_array.slice(start, end);
+        }
+        catch (error) {
+            return null;
+        }
     }
 }
 function getUint32Array(size_t) {
