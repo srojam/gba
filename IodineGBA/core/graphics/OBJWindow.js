@@ -20,35 +20,13 @@ GameBoyAdvanceOBJWindowRenderer.prototype.initialize = function () {
     //Need to update the color effects status in the compositor:
     this.preprocess();
 }
-GameBoyAdvanceOBJWindowRenderer.prototype.renderScanLine = function (line, OBJBuffer, BG0Buffer, BG1Buffer, BG2Buffer, BG3Buffer) {
+GameBoyAdvanceOBJWindowRenderer.prototype.renderScanLine = function (line, toRender) {
     line = line | 0;
-    OBJBuffer = OBJBuffer | 0;
-    BG0Buffer = BG0Buffer | 0;
-    BG1Buffer = BG1Buffer | 0;
-    BG2Buffer = BG2Buffer | 0;
-    BG3Buffer = BG3Buffer | 0;
-    if ((this.WINOBJOutside & 0x1) == 0) {
-        //BG Layer 0 Disabled:
-        BG0Buffer = 0;
-    }
-    if ((this.WINOBJOutside & 0x2) == 0) {
-        //BG Layer 1 Disabled:
-        BG1Buffer = 0;
-    }
-    if ((this.WINOBJOutside & 0x4) == 0) {
-        //BG Layer 2 Disabled:
-        BG2Buffer = 0;
-    }
-    if ((this.WINOBJOutside & 0x8) == 0) {
-        //BG Layer 3 Disabled:
-        BG3Buffer = 0;
-    }
-    if ((this.WINOBJOutside & 0x10) == 0) {
-        //Sprite Layer Disabled:
-        OBJBuffer = 0;
-    }
+    toRender = toRender | 0;
+    //Windowing can disable out further layers:
+    toRender = toRender & this.WINOBJOutside;
     //Windowing occurs where there is a non-transparent "obj-win" sprite:
-    this.compositor.renderScanLine(OBJBuffer | 0, BG0Buffer | 0, BG1Buffer | 0, BG2Buffer | 0, BG3Buffer | 0);
+    this.compositor.renderScanLine(toRender | 0);
 }
 GameBoyAdvanceOBJWindowRenderer.prototype.writeWINOBJIN8 = function (data) {
     data = data | 0;

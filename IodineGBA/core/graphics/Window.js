@@ -28,33 +28,11 @@ GameBoyAdvanceWindowRenderer.prototype.initialize = function () {
     //Need to update the color effects status in the compositor:
     this.preprocess();
 }
-GameBoyAdvanceWindowRenderer.prototype.renderScanLine = function (line, OBJBuffer, BG0Buffer, BG1Buffer, BG2Buffer, BG3Buffer) {
+GameBoyAdvanceWindowRenderer.prototype.renderScanLine = function (line, toRender) {
     line = line | 0;
-    OBJBuffer = OBJBuffer | 0;
-    BG0Buffer = BG0Buffer | 0;
-    BG1Buffer = BG1Buffer | 0;
-    BG2Buffer = BG2Buffer | 0;
-    BG3Buffer = BG3Buffer | 0;
-    if ((this.windowDisplayControl & 0x1) == 0) {
-        //BG Layer 0 Disabled:
-        BG0Buffer = 0;
-    }
-    if ((this.windowDisplayControl & 0x2) == 0) {
-        //BG Layer 1 Disabled:
-        BG1Buffer = 0;
-    }
-    if ((this.windowDisplayControl & 0x4) == 0) {
-        //BG Layer 2 Disabled:
-        BG2Buffer = 0;
-    }
-    if ((this.windowDisplayControl & 0x8) == 0) {
-        //BG Layer 3 Disabled:
-        BG3Buffer = 0;
-    }
-    if ((this.windowDisplayControl & 0x10) == 0) {
-        //Sprite Layer Disabled:
-        OBJBuffer = 0;
-    }
+    toRender = toRender | 0;
+    //Windowing can disable out further layers:
+    toRender = toRender & this.windowDisplayControl;
     //Check if we're doing windowing for the current line:
     if (this.checkYRange(line | 0)) {
         //Windowing is active for the current line:
@@ -65,16 +43,16 @@ GameBoyAdvanceWindowRenderer.prototype.renderScanLine = function (line, OBJBuffe
             left = Math.min(left | 0, 240) | 0;
             right = Math.min(right | 0, 240) | 0;
             //Render left coordinate to right coordinate:
-            this.compositor.renderScanLine(left | 0, right | 0, OBJBuffer | 0, BG0Buffer | 0, BG1Buffer | 0, BG2Buffer | 0, BG3Buffer | 0);
+            this.compositor.renderScanLine(left | 0, right | 0, toRender | 0);
         }
         else {
             //Invalid horizontal windowing coordinates, so invert horizontal windowing range:
             left = Math.min(left | 0, 240) | 0;
             right = Math.min(right | 0, 240) | 0;
             //Render pixel 0 to right coordinate:
-            this.compositor.renderScanLine(0, right | 0, OBJBuffer | 0, BG0Buffer | 0, BG1Buffer | 0, BG2Buffer | 0, BG3Buffer | 0);
+            this.compositor.renderScanLine(0, right | 0, toRender | 0);
             //Render left coordinate to last pixel:
-            this.compositor.renderScanLine(left | 0, 240, OBJBuffer | 0, BG0Buffer | 0, BG1Buffer | 0, BG2Buffer | 0, BG3Buffer | 0);
+            this.compositor.renderScanLine(left | 0, 240, toRender | 0);
         }
     }
 }

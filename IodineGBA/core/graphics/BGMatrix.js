@@ -29,7 +29,7 @@ GameBoyAdvanceBGMatrixRenderer.prototype.initialize = function () {
 }
 GameBoyAdvanceBGMatrixRenderer.prototype.renderScanLine = function (line) {
     line = line | 0;
-    return this.bgAffineRenderer.renderScanLine(line | 0, this) | 0;
+    this.bgAffineRenderer.renderScanLine(line | 0, this);
 }
 if (typeof Math.imul == "function") {
     //Math.imul found, insert the optimized path in:

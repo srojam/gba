@@ -195,7 +195,6 @@ else {
 GameBoyAdvanceOBJRenderer.prototype.renderScanLine = function (line) {
     line = line | 0;
     this.performRenderLoop(line | 0);
-    return this.offset | 0;
 }
 GameBoyAdvanceOBJRenderer.prototype.performRenderLoop = function (line) {
     line = line | 0;

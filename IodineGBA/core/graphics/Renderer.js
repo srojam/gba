@@ -92,8 +92,8 @@ GameBoyAdvanceGraphicsRenderer.prototype.generateRenderers = function () {
     this.bg3MatrixRenderer = new GameBoyAdvanceBGMatrixRenderer(this, 3);
     this.bg2FrameBufferRenderer = new GameBoyAdvanceBG2FrameBufferRenderer(this);
     this.objRenderer = new GameBoyAdvanceOBJRenderer(this);
-    this.window0Renderer = new GameBoyAdvanceWindowRenderer(new GameBoyAdvanceCompositor(this));
-    this.window1Renderer = new GameBoyAdvanceWindowRenderer(new GameBoyAdvanceCompositor(this));
+    this.window0Renderer = new GameBoyAdvanceWindowRenderer(new GameBoyAdvanceWindowCompositor(this));
+    this.window1Renderer = new GameBoyAdvanceWindowRenderer(new GameBoyAdvanceWindowCompositor(this));
     this.objWindowRenderer = new GameBoyAdvanceOBJWindowRenderer(new GameBoyAdvanceOBJWindowCompositor(this));
     this.mosaicRenderer = new GameBoyAdvanceMosaicRenderer(this.buffer);
     this.colorEffectsRenderer = new GameBoyAdvanceColorEffectsRenderer();
@@ -206,156 +206,118 @@ GameBoyAdvanceGraphicsRenderer.prototype.renderScanLine = function () {
 GameBoyAdvanceGraphicsRenderer.prototype.renderMode0 = function (line) {
     line = line | 0;
     //Mode 0 Rendering Selected:
-    var BG0Buffer = 0;
-    var BG1Buffer = 0;
-    var BG2Buffer = 0;
-    var BG3Buffer = 0;
-    var OBJBuffer = 0;
-    if ((this.display & 0x1) != 0) {
+    var toRender = this.display & 0x1F;
+    if ((toRender & 0x1) != 0) {
         //Render the BG0 layer:
-        BG0Buffer = this.bg0Renderer.renderScanLine(line | 0) | 0;
+        this.bg0Renderer.renderScanLine(line | 0);
     }
-    if ((this.display & 0x2) != 0) {
+    if ((toRender & 0x2) != 0) {
         //Render the BG1 layer:
-        BG1Buffer = this.bg1Renderer.renderScanLine(line | 0) | 0;
+        this.bg1Renderer.renderScanLine(line | 0);
     }
-    if ((this.display & 0x4) != 0) {
+    if ((toRender & 0x4) != 0) {
         //Render the BG2 layer:
-        BG2Buffer = this.bg2TextRenderer.renderScanLine(line | 0) | 0;
+        this.bg2TextRenderer.renderScanLine(line | 0);
     }
-    if ((this.display & 0x8) != 0) {
+    if ((toRender & 0x8) != 0) {
         //Render the BG3 layer:
-        BG3Buffer = this.bg3TextRenderer.renderScanLine(line | 0) | 0;
+        this.bg3TextRenderer.renderScanLine(line | 0);
     }
-    if ((this.display & 0x10) != 0) {
+    if ((toRender & 0x10) != 0) {
         //Render the sprite layer:
-        OBJBuffer = this.objRenderer.renderScanLine(line | 0) | 0;
+        this.objRenderer.renderScanLine(line | 0);
     }
     //Composite the non-windowed result:
-    this.compositeLayers(OBJBuffer | 0, BG0Buffer | 0, BG1Buffer | 0, BG2Buffer | 0, BG3Buffer | 0);
+    this.compositeLayers(toRender | 0);
     //Composite the windowed result:
-    this.compositeWindowedLayers(line | 0, OBJBuffer | 0, BG0Buffer | 0, BG1Buffer | 0, BG2Buffer | 0, BG3Buffer | 0);
+    this.compositeWindowedLayers(line | 0, toRender | 0);
 }
 GameBoyAdvanceGraphicsRenderer.prototype.renderMode1 = function (line) {
     line = line | 0;
     //Mode 1 Rendering Selected:
-    var BG0Buffer = 0;
-    var BG1Buffer = 0;
-    var BG2Buffer = 0;
-    var OBJBuffer = 0;
-    if ((this.display & 0x1) != 0) {
+    var toRender = this.display & 0x17;
+    if ((toRender & 0x1) != 0) {
         //Render the BG0 layer:
-        BG0Buffer = this.bg0Renderer.renderScanLine(line | 0) | 0;
+        this.bg0Renderer.renderScanLine(line | 0);
     }
-    if ((this.display & 0x2) != 0) {
+    if ((toRender & 0x2) != 0) {
         //Render the BG1 layer:
-        BG1Buffer = this.bg1Renderer.renderScanLine(line | 0) | 0;
+        this.bg1Renderer.renderScanLine(line | 0);
     }
-    if ((this.display & 0x4) != 0) {
+    if ((toRender & 0x4) != 0) {
         //Render the BG2 layer:
-        BG2Buffer = this.bg2MatrixRenderer.renderScanLine(line | 0) | 0;
+        this.bg2MatrixRenderer.renderScanLine(line | 0);
     }
-    if ((this.display & 0x10) != 0) {
+    if ((toRender & 0x10) != 0) {
         //Render the sprite layer:
-        OBJBuffer = this.objRenderer.renderScanLine(line | 0) | 0;
+        this.objRenderer.renderScanLine(line | 0);
     }
     //Composite the non-windowed result:
-    this.compositeLayers(OBJBuffer | 0, BG0Buffer | 0, BG1Buffer | 0, BG2Buffer | 0, 0);
+    this.compositeLayers(toRender | 0);
     //Composite the windowed result:
-    this.compositeWindowedLayers(line | 0, OBJBuffer | 0, BG0Buffer | 0, BG1Buffer | 0, BG2Buffer | 0, 0);
+    this.compositeWindowedLayers(line | 0, toRender | 0);
 }
 GameBoyAdvanceGraphicsRenderer.prototype.renderMode2 = function (line) {
     line = line | 0;
     //Mode 2 Rendering Selected:
-    var BG2Buffer = 0;
-    var BG3Buffer = 0;
-    var OBJBuffer = 0;
-    if ((this.display & 0x4) != 0) {
+    var toRender = this.display & 0x1C;
+    if ((toRender & 0x4) != 0) {
         //Render the BG2 layer:
-        BG2Buffer = this.bg2MatrixRenderer.renderScanLine(line | 0) | 0;
+        this.bg2MatrixRenderer.renderScanLine(line | 0);
     }
-    if ((this.display & 0x8) != 0) {
+    if ((toRender & 0x8) != 0) {
         //Render the BG3 layer:
-        BG3Buffer = this.bg3MatrixRenderer.renderScanLine(line | 0) | 0;
+        this.bg3MatrixRenderer.renderScanLine(line | 0);
     }
-    if ((this.display & 0x10) != 0) {
+    if ((toRender & 0x10) != 0) {
         //Render the sprite layer:
-        OBJBuffer = this.objRenderer.renderScanLine(line | 0) | 0;
+        this.objRenderer.renderScanLine(line | 0);
     }
     //Composite the non-windowed result:
-    this.compositeLayers(OBJBuffer | 0, 0, 0, BG2Buffer | 0, BG3Buffer | 0);
+    this.compositeLayers(toRender | 0);
     //Composite the windowed result:
-    this.compositeWindowedLayers(line | 0, OBJBuffer | 0, 0, 0, BG2Buffer | 0, BG3Buffer | 0);
+    this.compositeWindowedLayers(line | 0, toRender | 0);
 }
 GameBoyAdvanceGraphicsRenderer.prototype.renderModeFrameBuffer = function (line) {
     line = line | 0;
     //Mode 3/4/5 Rendering Selected:
-    var BG2Buffer = 0;
-    var OBJBuffer = 0;
-    if ((this.display & 0x4) != 0) {
-        BG2Buffer = this.bg2FrameBufferRenderer.renderScanLine(line | 0) | 0;
+    var toRender = this.display & 0x14;
+    if ((toRender & 0x4) != 0) {
+        this.bg2FrameBufferRenderer.renderScanLine(line | 0);
     }
-    if ((this.display & 0x10) != 0) {
+    if ((toRender & 0x10) != 0) {
         //Render the sprite layer:
-        OBJBuffer = this.objRenderer.renderScanLine(line | 0) | 0;
+        this.objRenderer.renderScanLine(line | 0);
     }
     //Composite the non-windowed result:
-    this.compositeLayers(OBJBuffer | 0, 0, 0, BG2Buffer | 0, 0);
+    this.compositeLayers(toRender | 0);
     //Composite the windowed result:
-    this.compositeWindowedLayers(line | 0, OBJBuffer | 0, 0, 0, BG2Buffer | 0, 0);
+    this.compositeWindowedLayers(line | 0, toRender | 0);
 }
-GameBoyAdvanceGraphicsRenderer.prototype.compositeLayers = function (OBJBuffer, BG0Buffer, BG1Buffer, BG2Buffer, BG3Buffer) {
-    OBJBuffer = OBJBuffer | 0;
-    BG0Buffer = BG0Buffer | 0;
-    BG1Buffer = BG1Buffer | 0;
-    BG2Buffer = BG2Buffer | 0;
-    BG3Buffer = BG3Buffer | 0;
-    //Arrange our layer stack so we can remove disabled and order for correct edge case priority:
+GameBoyAdvanceGraphicsRenderer.prototype.compositeLayers = function (toRender) {
+    toRender = toRender | 0;
     if ((this.display & 0xE0) > 0) {
         //Window registers can further disable background layers if one or more window layers enabled:
-        if ((this.WINOutside & 0x1) == 0) {
-            //BG Layer 0 Disabled:
-            BG0Buffer = 0;
-        }
-        if ((this.WINOutside & 0x2) == 0) {
-            //BG Layer 1 Disabled:
-            BG1Buffer = 0;
-        }
-        if ((this.WINOutside & 0x4) == 0) {
-            //BG Layer 2 Disabled:
-            BG2Buffer = 0;
-        }
-        if ((this.WINOutside & 0x8) == 0) {
-            //BG Layer 3 Disabled:
-            BG3Buffer = 0;
-        }
-        if ((this.WINOutside & 0x10) == 0) {
-            //Sprite Layer Disabled:
-            OBJBuffer = 0;
-        }
+        toRender = toRender & this.WINOutside;
     }
     //Composite the non-windowed result:
-    this.compositor.renderScanLine(0, 240, OBJBuffer | 0, BG0Buffer | 0, BG1Buffer | 0, BG2Buffer | 0, BG3Buffer | 0);
+    this.compositor.renderScanLine(toRender | 0);
 }
-GameBoyAdvanceGraphicsRenderer.prototype.compositeWindowedLayers = function (line, OBJBuffer, BG0Buffer, BG1Buffer, BG2Buffer, BG3Buffer) {
+GameBoyAdvanceGraphicsRenderer.prototype.compositeWindowedLayers = function (line, toRender) {
     line = line | 0;
-    OBJBuffer = OBJBuffer | 0;
-    BG0Buffer = BG0Buffer | 0;
-    BG1Buffer = BG1Buffer | 0;
-    BG2Buffer = BG2Buffer | 0;
-    BG3Buffer = BG3Buffer | 0;
+    toRender = toRender | 0;
     //Composite the windowed result:
     if ((this.display & 0x90) == 0x90) {
         //Object Window:
-        this.objWindowRenderer.renderScanLine(line | 0, OBJBuffer | 0, BG0Buffer | 0, BG1Buffer | 0, BG2Buffer | 0, BG3Buffer | 0);
+        this.objWindowRenderer.renderScanLine(line | 0, toRender | 0);
     }
     if ((this.display & 0x40) != 0) {
         //Window 1:
-        this.window1Renderer.renderScanLine(line | 0, OBJBuffer | 0, BG0Buffer | 0, BG1Buffer | 0, BG2Buffer | 0, BG3Buffer | 0);
+        this.window1Renderer.renderScanLine(line | 0, toRender | 0);
     }
     if ((this.display & 0x20) != 0) {
         //Window 0:
-        this.window0Renderer.renderScanLine(line | 0, OBJBuffer | 0, BG0Buffer | 0, BG1Buffer | 0, BG2Buffer | 0, BG3Buffer | 0);
+        this.window0Renderer.renderScanLine(line | 0, toRender | 0);
     }
 }
 if (typeof Math.imul == "function") {

@@ -158,7 +158,6 @@ GameBoyAdvanceBGTEXTRenderer.prototype.renderScanLine = function (line) {
         //Pixelize the line horizontally:
         this.gfx.mosaicRenderer.renderMosaicHorizontal(this.offset | 0);
     }
-    return this.offset | 0;
 }
 if (__LITTLE_ENDIAN__) {
     GameBoyAdvanceBGTEXTRenderer.prototype.fetchTile = function (yTileStart, xTileStart) {

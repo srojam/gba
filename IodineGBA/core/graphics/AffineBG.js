@@ -48,7 +48,6 @@ if (__VIEWS_SUPPORTED__) {
                 //Pixelize the line horizontally:
                 this.gfx.mosaicRenderer.renderMosaicHorizontal(this.offset | 0);
             }
-            return this.offset | 0;
         }
         GameBoyAdvanceAffineBGRenderer.prototype.offsetReferenceCounters = function () {
             var end = this.gfx.lastUnrenderedLine | 0;
@@ -75,7 +74,6 @@ if (__VIEWS_SUPPORTED__) {
                 //Pixelize the line horizontally:
                 this.gfx.mosaicRenderer.renderMosaicHorizontal(this.offset | 0);
             }
-            return this.offset;
         }
         GameBoyAdvanceAffineBGRenderer.prototype.offsetReferenceCounters = function () {
             var end = this.gfx.lastUnrenderedLine | 0;
@@ -116,7 +114,6 @@ else {
             //Pixelize the line horizontally:
             this.gfx.mosaicRenderer.renderMosaicHorizontal(this.offset);
         }
-        return this.offset;
     }
     GameBoyAdvanceAffineBGRenderer.prototype.offsetReferenceCounters = function () {
         var end = this.gfx.lastUnrenderedLine | 0;
