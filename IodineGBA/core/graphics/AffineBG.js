@@ -34,7 +34,7 @@ if (__VIEWS_SUPPORTED__) {
             line = line | 0;
             var x = this.pb | 0;
             var y = this.pd | 0;
-            if (this.gfx.BGMosaic[this.BGLayer & 3]) {
+            if ((this.gfx.BGMosaic[this.BGLayer & 3] | 0) != 0) {
                 //Correct line number for mosaic:
                 var mosaicY = this.gfx.mosaicRenderer.getMosaicYOffset(line | 0) | 0;
                 x = ((x | 0) - Math.imul(this.BGdmx | 0, mosaicY | 0)) | 0;
@@ -44,7 +44,7 @@ if (__VIEWS_SUPPORTED__) {
                 //Fetch pixel:
                 this.scratchBuffer[position | 0] = this.priorityFlag | BGObject.fetchPixel(x >> 8, y >> 8);
             }
-            if (this.gfx.BGMosaic[this.BGLayer & 3]) {
+            if ((this.gfx.BGMosaic[this.BGLayer & 3] | 0) != 0) {
                 //Pixelize the line horizontally:
                 this.gfx.mosaicRenderer.renderMosaicHorizontal(this.offset | 0);
             }
@@ -60,7 +60,7 @@ if (__VIEWS_SUPPORTED__) {
         GameBoyAdvanceAffineBGRenderer.prototype.renderScanLine = function (line, BGObject) {
             var x = this.pb;
             var y = this.pd;
-            if (this.gfx.BGMosaic[this.BGLayer & 3]) {
+            if ((this.gfx.BGMosaic[this.BGLayer & 3] | 0) != 0) {
                 //Correct line number for mosaic:
                 var mosaicY = this.gfx.mosaicRenderer.getMosaicYOffset(line | 0);
                 x -= this.BGdmx * mosaicY;
@@ -70,7 +70,7 @@ if (__VIEWS_SUPPORTED__) {
                 //Fetch pixel:
                 this.scratchBuffer[position] = this.priorityFlag | BGObject.fetchPixel(x >> 8, y >> 8);
             }
-            if (this.gfx.BGMosaic[this.BGLayer & 3]) {
+            if ((this.gfx.BGMosaic[this.BGLayer & 3] | 0) != 0) {
                 //Pixelize the line horizontally:
                 this.gfx.mosaicRenderer.renderMosaicHorizontal(this.offset | 0);
             }
@@ -100,7 +100,7 @@ else {
     GameBoyAdvanceAffineBGRenderer.prototype.renderScanLine = function (line, BGObject) {
         var x = this.pb;
         var y = this.pd;
-        if (this.gfx.BGMosaic[this.BGLayer & 3]) {
+        if ((this.gfx.BGMosaic[this.BGLayer & 3] | 0) != 0) {
             //Correct line number for mosaic:
             var mosaicY = this.gfx.mosaicRenderer.getMosaicYOffset(line | 0);
             x -= this.BGdmx * mosaicY;
@@ -110,7 +110,7 @@ else {
             //Fetch pixel:
             this.scratchBuffer[this.offset + position] = this.priorityFlag | BGObject.fetchPixel(x >> 8, y >> 8);
         }
-        if (this.gfx.BGMosaic[this.BGLayer & 3]) {
+        if ((this.gfx.BGMosaic[this.BGLayer & 3] | 0) != 0) {
             //Pixelize the line horizontally:
             this.gfx.mosaicRenderer.renderMosaicHorizontal(this.offset);
         }

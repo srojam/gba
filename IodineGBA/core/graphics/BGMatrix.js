@@ -25,7 +25,7 @@ GameBoyAdvanceBGMatrixRenderer.prototype.initialize = function () {
     this.screenSizePreprocess();
     this.screenBaseBlockPreprocess();
     this.characterBaseBlockPreprocess();
-    this.displayOverflowProcess(false);
+    this.displayOverflowProcess(0);
 }
 GameBoyAdvanceBGMatrixRenderer.prototype.renderScanLine = function (line) {
     line = line | 0;
@@ -90,13 +90,19 @@ GameBoyAdvanceBGMatrixRenderer.prototype.screenSizePreprocess = function () {
     this.mapSize = 0x10 << (this.gfx.BGScreenSize[this.BGLayer & 3] | 0);
     this.mapSizeComparer = ((this.mapSize << 3) - 1) | 0;
 }
-GameBoyAdvanceBGMatrixRenderer.prototype.displayOverflowPreprocess = function () {
-    var doOverflow = this.gfx.BGDisplayOverflow[this.BGLayer & 1];
-    if (doOverflow != this.BGDisplayOverflow) {
-        this.displayOverflowProcess(doOverflow);
+GameBoyAdvanceBGMatrixRenderer.prototype.displayOverflowPreprocess = function (doOverflow) {
+    doOverflow = doOverflow | 0;
+    if ((doOverflow | 0) != (this.BGDisplayOverflow | 0)) {
+        this.displayOverflowProcess(doOverflow | 0);
     }
 }
 GameBoyAdvanceBGMatrixRenderer.prototype.displayOverflowProcess = function (doOverflow) {
-    this.BGDisplayOverflow = doOverflow;
-    this.fetchPixel = (doOverflow) ? this.fetchPixelOverflow : this.fetchPixelNoOverflow;
+    doOverflow = doOverflow | 0;
+    this.BGDisplayOverflow = doOverflow | 0;
+    if ((doOverflow | 0) != 0) {
+        this.fetchPixel = this.fetchPixelOverflow;
+    }
+    else {
+        this.fetchPixel = this.fetchPixelNoOverflow;
+    }
 }

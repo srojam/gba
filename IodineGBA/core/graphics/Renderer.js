@@ -23,10 +23,8 @@ if (__VIEWS_SUPPORTED__) {
         this.greenSwap = 0;
         this.BGPriority = getUint8Array(0x4);
         this.BGCharacterBaseBlock = getUint8Array(0x4);
-        this.BGMosaic = [false, false, false, false];
-        this.BGPalette256 = [false, false, false, false];
+        this.BGMosaic = getUint8Array(0x4);
         this.BGScreenBaseBlock = getUint8Array(0x4);
-        this.BGDisplayOverflow = [false, false];
         this.BGScreenSize = getUint8Array(0x4);
         this.WINOutside = 0;
         this.paletteRAM = getUint8Array(0x400);
@@ -57,9 +55,7 @@ else {
         this.BGPriority = getUint8Array(0x4);
         this.BGCharacterBaseBlock = getUint8Array(0x4);
         this.BGMosaic = [false, false, false, false];
-        this.BGPalette256 = [false, false, false, false];
         this.BGScreenBaseBlock = getUint8Array(0x4);
-        this.BGDisplayOverflow = [false, false];
         this.BGScreenSize = getUint8Array(0x4);
         this.WINOutside = 0;
         this.paletteRAM = getUint8Array(0x400);
@@ -483,9 +479,8 @@ GameBoyAdvanceGraphicsRenderer.prototype.writeBG0CNT8_0 = function (data) {
     this.BGPriority[0] = data & 0x3;
     this.BGCharacterBaseBlock[0] = (data & 0xC) >> 2;
     //Bits 5-6 always 0.
-    this.BGMosaic[0] = ((data & 0x40) != 0);
-    this.BGPalette256[0] = ((data & 0x80) != 0);
-    this.bg0Renderer.palettePreprocess();
+    this.BGMosaic[0] = data & 0x40;
+    this.bg0Renderer.paletteModeSelect(data & 0x80);
     this.bg0Renderer.priorityPreprocess();
     this.bg0Renderer.characterBaseBlockPreprocess();
 }
@@ -503,9 +498,8 @@ GameBoyAdvanceGraphicsRenderer.prototype.writeBG0CNT16 = function (data) {
     this.BGPriority[0] = data & 0x3;
     this.BGCharacterBaseBlock[0] = (data & 0xC) >> 2;
     //Bits 5-6 always 0.
-    this.BGMosaic[0] = ((data & 0x40) != 0);
-    this.BGPalette256[0] = ((data & 0x80) != 0);
-    this.bg0Renderer.palettePreprocess();
+    this.BGMosaic[0] = data & 0x40;
+    this.bg0Renderer.paletteModeSelect(data & 0x80);
     this.bg0Renderer.priorityPreprocess();
     this.bg0Renderer.characterBaseBlockPreprocess();
     this.BGScreenBaseBlock[0] = (data >> 8) & 0x1F;
@@ -519,9 +513,8 @@ GameBoyAdvanceGraphicsRenderer.prototype.writeBG1CNT8_0 = function (data) {
     this.BGPriority[1] = data & 0x3;
     this.BGCharacterBaseBlock[1] = (data & 0xC) >> 2;
     //Bits 5-6 always 0.
-    this.BGMosaic[1] = ((data & 0x40) != 0);
-    this.BGPalette256[1] = ((data & 0x80) != 0);
-    this.bg1Renderer.palettePreprocess();
+    this.BGMosaic[1] = data & 0x40;
+    this.bg1Renderer.paletteModeSelect(data & 0x80);
     this.bg1Renderer.priorityPreprocess();
     this.bg1Renderer.characterBaseBlockPreprocess();
 }
@@ -539,9 +532,8 @@ GameBoyAdvanceGraphicsRenderer.prototype.writeBG1CNT16 = function (data) {
     this.BGPriority[1] = data & 0x3;
     this.BGCharacterBaseBlock[1] = (data & 0xC) >> 2;
     //Bits 5-6 always 0.
-    this.BGMosaic[1] = ((data & 0x40) != 0);
-    this.BGPalette256[1] = ((data & 0x80) != 0);
-    this.bg1Renderer.palettePreprocess();
+    this.BGMosaic[1] = data & 0x40;
+    this.bg1Renderer.paletteModeSelect(data & 0x80);
     this.bg1Renderer.priorityPreprocess();
     this.bg1Renderer.characterBaseBlockPreprocess();
     this.BGScreenBaseBlock[1] = (data >> 8) & 0x1F;
@@ -553,9 +545,8 @@ GameBoyAdvanceGraphicsRenderer.prototype.writeBG0BG1CNT32 = function (data) {
     this.BGPriority[0] = data & 0x3;
     this.BGCharacterBaseBlock[0] = (data & 0xC) >> 2;
     //Bits 5-6 always 0.
-    this.BGMosaic[0] = ((data & 0x40) != 0);
-    this.BGPalette256[0] = ((data & 0x80) != 0);
-    this.bg0Renderer.palettePreprocess();
+    this.BGMosaic[0] = data & 0x40;
+    this.bg0Renderer.paletteModeSelect(data & 0x80);
     this.bg0Renderer.priorityPreprocess();
     this.bg0Renderer.characterBaseBlockPreprocess();
     this.BGScreenBaseBlock[0] = (data >> 8) & 0x1F;
@@ -565,9 +556,8 @@ GameBoyAdvanceGraphicsRenderer.prototype.writeBG0BG1CNT32 = function (data) {
     this.BGPriority[1] = (data >> 16) & 0x3;
     this.BGCharacterBaseBlock[1] = (data & 0xC0000) >> 18;
     //Bits 5-6 always 0.
-    this.BGMosaic[1] = ((data & 0x400000) != 0);
-    this.BGPalette256[1] = ((data & 0x800000) != 0);
-    this.bg1Renderer.palettePreprocess();
+    this.BGMosaic[1] = data & 0x400000;
+    this.bg1Renderer.paletteModeSelect((data >> 16) & 0x80);
     this.bg1Renderer.priorityPreprocess();
     this.bg1Renderer.characterBaseBlockPreprocess();
     this.BGScreenBaseBlock[1] = (data >> 24) & 0x1F;
@@ -581,9 +571,8 @@ GameBoyAdvanceGraphicsRenderer.prototype.writeBG2CNT8_0 = function (data) {
     this.BGPriority[2] = data & 0x3;
     this.BGCharacterBaseBlock[2] = (data & 0xC) >> 2;
     //Bits 5-6 always 0.
-    this.BGMosaic[2] = ((data & 0x40) != 0);
-    this.BGPalette256[2] = ((data & 0x80) != 0);
-    this.bg2TextRenderer.palettePreprocess();
+    this.BGMosaic[2] = data & 0x40;
+    this.bg2TextRenderer.paletteModeSelect(data & 0x80);
     this.bg2TextRenderer.priorityPreprocess();
     this.bgAffineRenderer0.priorityPreprocess();
     this.bg2TextRenderer.characterBaseBlockPreprocess();
@@ -593,13 +582,12 @@ GameBoyAdvanceGraphicsRenderer.prototype.writeBG2CNT8_1 = function (data) {
     data = data | 0;
     this.graphicsJIT();
     this.BGScreenBaseBlock[2] = data & 0x1F;
-    this.BGDisplayOverflow[0] = ((data & 0x20) != 0);
     this.BGScreenSize[2] = (data & 0xC0) >> 6;
     this.bg2TextRenderer.screenSizePreprocess();
     this.bg2MatrixRenderer.screenSizePreprocess();
     this.bg2TextRenderer.screenBaseBlockPreprocess();
     this.bg2MatrixRenderer.screenBaseBlockPreprocess();
-    this.bg2MatrixRenderer.displayOverflowPreprocess();
+    this.bg2MatrixRenderer.displayOverflowPreprocess(data & 0x20);
 }
 GameBoyAdvanceGraphicsRenderer.prototype.writeBG2CNT16 = function (data) {
     data = data | 0;
@@ -607,21 +595,19 @@ GameBoyAdvanceGraphicsRenderer.prototype.writeBG2CNT16 = function (data) {
     this.BGPriority[2] = data & 0x3;
     this.BGCharacterBaseBlock[2] = (data & 0xC) >> 2;
     //Bits 5-6 always 0.
-    this.BGMosaic[2] = ((data & 0x40) != 0);
-    this.BGPalette256[2] = ((data & 0x80) != 0);
-    this.bg2TextRenderer.palettePreprocess();
+    this.BGMosaic[2] = data & 0x40;
+    this.bg2TextRenderer.paletteModeSelect(data & 0x80);
     this.bg2TextRenderer.priorityPreprocess();
     this.bgAffineRenderer0.priorityPreprocess();
     this.bg2TextRenderer.characterBaseBlockPreprocess();
     this.bg2MatrixRenderer.characterBaseBlockPreprocess();
     this.BGScreenBaseBlock[2] = (data >> 8) & 0x1F;
-    this.BGDisplayOverflow[0] = ((data & 0x2000) != 0);
     this.BGScreenSize[2] = (data & 0xC000) >> 14;
     this.bg2TextRenderer.screenSizePreprocess();
     this.bg2MatrixRenderer.screenSizePreprocess();
     this.bg2TextRenderer.screenBaseBlockPreprocess();
     this.bg2MatrixRenderer.screenBaseBlockPreprocess();
-    this.bg2MatrixRenderer.displayOverflowPreprocess();
+    this.bg2MatrixRenderer.displayOverflowPreprocess((data >> 8) & 0x20);
 }
 GameBoyAdvanceGraphicsRenderer.prototype.writeBG3CNT8_0 = function (data) {
     data = data | 0;
@@ -629,9 +615,8 @@ GameBoyAdvanceGraphicsRenderer.prototype.writeBG3CNT8_0 = function (data) {
     this.BGPriority[3] = data & 0x3;
     this.BGCharacterBaseBlock[3] = (data & 0xC) >> 2;
     //Bits 5-6 always 0.
-    this.BGMosaic[3] = ((data & 0x40) != 0);
-    this.BGPalette256[3] = ((data & 0x80) != 0);
-    this.bg3TextRenderer.palettePreprocess();
+    this.BGMosaic[3] = data & 0x40;
+    this.bg3TextRenderer.paletteModeSelect(data & 0x80);
     this.bg3TextRenderer.priorityPreprocess();
     this.bgAffineRenderer1.priorityPreprocess();
     this.bg3TextRenderer.characterBaseBlockPreprocess();
@@ -641,13 +626,12 @@ GameBoyAdvanceGraphicsRenderer.prototype.writeBG3CNT8_1 = function (data) {
     data = data | 0;
     this.graphicsJIT();
     this.BGScreenBaseBlock[3] = data & 0x1F;
-    this.BGDisplayOverflow[1] = ((data & 0x20) != 0);
     this.BGScreenSize[3] = (data & 0xC0) >> 6;
     this.bg3TextRenderer.screenSizePreprocess();
     this.bg3MatrixRenderer.screenSizePreprocess();
     this.bg3TextRenderer.screenBaseBlockPreprocess();
     this.bg3MatrixRenderer.screenBaseBlockPreprocess();
-    this.bg3MatrixRenderer.displayOverflowPreprocess();
+    this.bg3MatrixRenderer.displayOverflowPreprocess(data & 0x20);
 }
 GameBoyAdvanceGraphicsRenderer.prototype.writeBG3CNT16 = function (data) {
     data = data | 0;
@@ -655,21 +639,19 @@ GameBoyAdvanceGraphicsRenderer.prototype.writeBG3CNT16 = function (data) {
     this.BGPriority[3] = data & 0x3;
     this.BGCharacterBaseBlock[3] = (data & 0xC) >> 2;
     //Bits 5-6 always 0.
-    this.BGMosaic[3] = ((data & 0x40) != 0);
-    this.BGPalette256[3] = ((data & 0x80) != 0);
-    this.bg3TextRenderer.palettePreprocess();
+    this.BGMosaic[3] = data & 0x40;
+    this.bg3TextRenderer.paletteModeSelect(data & 0x80);
     this.bg3TextRenderer.priorityPreprocess();
     this.bgAffineRenderer1.priorityPreprocess();
     this.bg3TextRenderer.characterBaseBlockPreprocess();
     this.bg3MatrixRenderer.characterBaseBlockPreprocess();
     this.BGScreenBaseBlock[3] = (data >> 8) & 0x1F;
-    this.BGDisplayOverflow[1] = ((data & 0x2000) != 0);
     this.BGScreenSize[3] = (data & 0xC000) >> 14;
     this.bg3TextRenderer.screenSizePreprocess();
     this.bg3MatrixRenderer.screenSizePreprocess();
     this.bg3TextRenderer.screenBaseBlockPreprocess();
     this.bg3MatrixRenderer.screenBaseBlockPreprocess();
-    this.bg3MatrixRenderer.displayOverflowPreprocess();
+    this.bg3MatrixRenderer.displayOverflowPreprocess((data >> 8) & 0x20);
 }
 GameBoyAdvanceGraphicsRenderer.prototype.writeBG2BG3CNT32 = function (data) {
     data = data | 0;
@@ -677,39 +659,35 @@ GameBoyAdvanceGraphicsRenderer.prototype.writeBG2BG3CNT32 = function (data) {
     this.BGPriority[2] = data & 0x3;
     this.BGCharacterBaseBlock[2] = (data & 0xC) >> 2;
     //Bits 5-6 always 0.
-    this.BGMosaic[2] = ((data & 0x40) != 0);
-    this.BGPalette256[2] = ((data & 0x80) != 0);
-    this.bg2TextRenderer.palettePreprocess();
+    this.BGMosaic[2] = data & 0x40;
+    this.bg2TextRenderer.paletteModeSelect(data & 0x80);
     this.bg2TextRenderer.priorityPreprocess();
     this.bgAffineRenderer0.priorityPreprocess();
     this.bg2TextRenderer.characterBaseBlockPreprocess();
     this.bg2MatrixRenderer.characterBaseBlockPreprocess();
     this.BGScreenBaseBlock[2] = (data >> 8) & 0x1F;
-    this.BGDisplayOverflow[0] = ((data & 0x2000) != 0);
     this.BGScreenSize[2] = (data & 0xC000) >> 14;
     this.bg2TextRenderer.screenSizePreprocess();
     this.bg2MatrixRenderer.screenSizePreprocess();
     this.bg2TextRenderer.screenBaseBlockPreprocess();
     this.bg2MatrixRenderer.screenBaseBlockPreprocess();
-    this.bg2MatrixRenderer.displayOverflowPreprocess();
+    this.bg2MatrixRenderer.displayOverflowPreprocess((data >> 8) & 0x20);
     this.BGPriority[3] = (data >> 16) & 0x3;
     this.BGCharacterBaseBlock[3] = (data & 0xC0000) >> 18;
     //Bits 5-6 always 0.
-    this.BGMosaic[3] = ((data & 0x400000) != 0);
-    this.BGPalette256[3] = ((data & 0x800000) != 0);
-    this.bg3TextRenderer.palettePreprocess();
+    this.BGMosaic[3] = data & 0x400000;
+    this.bg3TextRenderer.paletteModeSelect((data >> 16) & 0x80);
     this.bg3TextRenderer.priorityPreprocess();
     this.bgAffineRenderer1.priorityPreprocess();
     this.bg3TextRenderer.characterBaseBlockPreprocess();
     this.bg3MatrixRenderer.characterBaseBlockPreprocess();
     this.BGScreenBaseBlock[3] = (data >> 24) & 0x1F;
-    this.BGDisplayOverflow[1] = ((data & 0x20000000) != 0);
     this.BGScreenSize[3] = data >>> 30;
     this.bg3TextRenderer.screenSizePreprocess();
     this.bg3MatrixRenderer.screenSizePreprocess();
     this.bg3TextRenderer.screenBaseBlockPreprocess();
     this.bg3MatrixRenderer.screenBaseBlockPreprocess();
-    this.bg3MatrixRenderer.displayOverflowPreprocess();
+    this.bg3MatrixRenderer.displayOverflowPreprocess((data >> 24) & 0x20);
 }
 GameBoyAdvanceGraphicsRenderer.prototype.writeBG0HOFS8_0 = function (data) {
     data = data | 0;

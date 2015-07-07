@@ -81,7 +81,7 @@ GameBoyAdvanceOBJWindowCompositor.prototype.renderNormalScanLine = GameBoyAdvanc
             this.normal7();
             break;
         case 8:
-            this.normal0();
+            this.normal8();
             break;
         case 9:
             this.normal9();
@@ -183,7 +183,7 @@ GameBoyAdvanceWindowCompositor.prototype.renderNormalScanLine = function (xStart
             this.normal7(xStart | 0, xEnd | 0);
             break;
         case 8:
-            this.normal0(xStart | 0, xEnd | 0);
+            this.normal8(xStart | 0, xEnd | 0);
             break;
         case 9:
             this.normal9(xStart | 0, xEnd | 0);
@@ -283,7 +283,7 @@ GameBoyAdvanceOBJWindowCompositor.prototype.renderScanLineWithEffects = GameBoyA
             this.special7();
             break;
         case 8:
-            this.special0();
+            this.special8();
             break;
         case 9:
             this.special9();
@@ -385,7 +385,7 @@ GameBoyAdvanceWindowCompositor.prototype.renderScanLineWithEffects = function (x
             this.special7(xStart | 0, xEnd | 0);
             break;
         case 8:
-            this.special0(xStart | 0, xEnd | 0);
+            this.special8(xStart | 0, xEnd | 0);
             break;
         case 9:
             this.special9(xStart | 0, xEnd | 0);

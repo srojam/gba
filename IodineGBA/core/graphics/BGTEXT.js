@@ -25,13 +25,13 @@ if (__VIEWS_SUPPORTED__) {
         this.tileFetched = getInt32ViewCustom(this.gfx.buffer, ((this.offset | 0) + 0xF8) | 0, ((this.offset | 0) + 0x100) | 0);
         this.BGXCoord = 0;
         this.BGYCoord = 0;
-        this.palettePreprocess();
+        this.do256 = 0;
         this.screenSizePreprocess();
         this.priorityPreprocess();
         this.screenBaseBlockPreprocess();
         this.characterBaseBlockPreprocess();
     }
-    GameBoyAdvanceBGTEXTRenderer.prototype.renderWholeTiles = function (xTileStart, yTileStart, yTileOffset) {
+    GameBoyAdvanceBGTEXTRenderer.prototype.renderWholeTiles8BIT = function (xTileStart, yTileStart, yTileOffset) {
         xTileStart = xTileStart | 0;
         yTileStart = yTileStart | 0;
         yTileOffset = yTileOffset | 0;
@@ -39,7 +39,29 @@ if (__VIEWS_SUPPORTED__) {
         for (var position = (8 - (this.BGXCoord & 0x7)) | 0; (position | 0) < 240; position = ((position | 0) + 8) | 0) {
             //Fetch tile attributes:
             //Get 8 pixels of data:
-            this.processVRAM(this.fetchTile(yTileStart | 0, xTileStart | 0) | 0, yTileOffset | 0);
+            this.process8BitVRAM(this.fetchTile(yTileStart | 0, xTileStart | 0) | 0, yTileOffset | 0);
+            //Copy the buffered tile to line:
+            this.scratchBuffer[position | 0] = this.tileFetched[0] | 0;
+            this.scratchBuffer[((position | 0) + 1) | 0] = this.tileFetched[1] | 0;
+            this.scratchBuffer[((position | 0) + 2) | 0] = this.tileFetched[2] | 0;
+            this.scratchBuffer[((position | 0) + 3) | 0] = this.tileFetched[3] | 0;
+            this.scratchBuffer[((position | 0) + 4) | 0] = this.tileFetched[4] | 0;
+            this.scratchBuffer[((position | 0) + 5) | 0] = this.tileFetched[5] | 0;
+            this.scratchBuffer[((position | 0) + 6) | 0] = this.tileFetched[6] | 0;
+            this.scratchBuffer[((position | 0) + 7) | 0] = this.tileFetched[7] | 0;
+            //Increment a tile counter:
+            xTileStart = ((xTileStart | 0) + 1) | 0;
+        }
+    }
+    GameBoyAdvanceBGTEXTRenderer.prototype.renderWholeTiles4BIT = function (xTileStart, yTileStart, yTileOffset) {
+        xTileStart = xTileStart | 0;
+        yTileStart = yTileStart | 0;
+        yTileOffset = yTileOffset | 0;
+        //Process full 8 pixels at a time:
+        for (var position = (8 - (this.BGXCoord & 0x7)) | 0; (position | 0) < 240; position = ((position | 0) + 8) | 0) {
+            //Fetch tile attributes:
+            //Get 8 pixels of data:
+            this.process4BitVRAM(this.fetchTile(yTileStart | 0, xTileStart | 0) | 0, yTileOffset | 0);
             //Copy the buffered tile to line:
             this.scratchBuffer[position | 0] = this.tileFetched[0] | 0;
             this.scratchBuffer[((position | 0) + 1) | 0] = this.tileFetched[1] | 0;
@@ -89,18 +111,35 @@ else {
         this.tileFetched = getInt32Array(8);
         this.BGXCoord = 0;
         this.BGYCoord = 0;
-        this.palettePreprocess();
+        this.do256 = 0;
         this.screenSizePreprocess();
         this.priorityPreprocess();
         this.screenBaseBlockPreprocess();
         this.characterBaseBlockPreprocess();
     }
-    GameBoyAdvanceBGTEXTRenderer.prototype.renderWholeTiles = function (xTileStart, yTileStart, yTileOffset) {
+    GameBoyAdvanceBGTEXTRenderer.prototype.renderWholeTiles8BIT = function (xTileStart, yTileStart, yTileOffset) {
         //Process full 8 pixels at a time:
         for (var position = 8 - (this.BGXCoord & 0x7) + this.offset; position < this.offsetEnd;) {
             //Fetch tile attributes:
             //Get 8 pixels of data:
-            this.processVRAM(this.fetchTile(yTileStart, xTileStart++), yTileOffset);
+            this.process8BitVRAM(this.fetchTile(yTileStart, xTileStart++), yTileOffset);
+            //Copy the buffered tile to line:
+            this.scratchBuffer[position++] = this.tileFetched[0];
+            this.scratchBuffer[position++] = this.tileFetched[1];
+            this.scratchBuffer[position++] = this.tileFetched[2];
+            this.scratchBuffer[position++] = this.tileFetched[3];
+            this.scratchBuffer[position++] = this.tileFetched[4];
+            this.scratchBuffer[position++] = this.tileFetched[5];
+            this.scratchBuffer[position++] = this.tileFetched[6];
+            this.scratchBuffer[position++] = this.tileFetched[7];
+        }
+    }
+    GameBoyAdvanceBGTEXTRenderer.prototype.renderWholeTiles4BIT = function (xTileStart, yTileStart, yTileOffset) {
+        //Process full 8 pixels at a time:
+        for (var position = 8 - (this.BGXCoord & 0x7) + this.offset; position < this.offsetEnd;) {
+            //Fetch tile attributes:
+            //Get 8 pixels of data:
+            this.process4BitVRAM(this.fetchTile(yTileStart, xTileStart++), yTileOffset);
             //Copy the buffered tile to line:
             this.scratchBuffer[position++] = this.tileFetched[0];
             this.scratchBuffer[position++] = this.tileFetched[1];
@@ -138,26 +177,51 @@ else {
 }
 GameBoyAdvanceBGTEXTRenderer.prototype.renderScanLine = function (line) {
     line = line | 0;
-    if (this.gfx.BGMosaic[this.BGLayer & 3]) {
+    if ((this.gfx.BGMosaic[this.BGLayer & 3] | 0) != 0) {
         //Correct line number for mosaic:
         line = ((line | 0) - (this.gfx.mosaicRenderer.getMosaicYOffset(line | 0) | 0)) | 0;
     }
     var yTileOffset = ((line | 0) + (this.BGYCoord | 0)) & 0x7;
     var yTileStart = ((line | 0) + (this.BGYCoord | 0)) >> 3;
     var xTileStart = this.BGXCoord >> 3;
+    //Render the tiles:
+    if ((this.do256 | 0) != 0) {
+        //8-bit palette mode:
+        this.render8BITLine(yTileStart | 0, xTileStart | 0, yTileOffset | 0);
+    }
+    else {
+        //4-bit palette mode:
+        this.render4BITLine(yTileStart | 0, xTileStart | 0, yTileOffset | 0);
+    }
+    if ((this.gfx.BGMosaic[this.BGLayer & 3] | 0) != 0) {
+        //Pixelize the line horizontally:
+        this.gfx.mosaicRenderer.renderMosaicHorizontal(this.offset | 0);
+    }
+}
+GameBoyAdvanceBGTEXTRenderer.prototype.render8BITLine = function (yTileStart, xTileStart, yTileOffset) {
+    yTileStart = yTileStart | 0;
+    xTileStart = xTileStart | 0;
+    yTileOffset = yTileOffset | 0;
     //Fetch tile attributes:
     var chrData = this.fetchTile(yTileStart | 0, xTileStart | 0) | 0;
     xTileStart = ((xTileStart | 0) + 1) | 0;
     //Get 8 pixels of data:
-    this.processVRAM(chrData | 0, yTileOffset | 0);
+    this.process8BitVRAM(chrData | 0, yTileOffset | 0);
     //Copy the buffered tile to line:
     this.fetchVRAMStart();
     //Render the rest of the tiles fast:
-    this.renderWholeTiles(xTileStart | 0, yTileStart | 0, yTileOffset | 0);
-    if (this.gfx.BGMosaic[this.BGLayer & 3]) {
-        //Pixelize the line horizontally:
-        this.gfx.mosaicRenderer.renderMosaicHorizontal(this.offset | 0);
-    }
+    this.renderWholeTiles8BIT(xTileStart | 0, yTileStart | 0, yTileOffset | 0);
+}
+GameBoyAdvanceBGTEXTRenderer.prototype.render4BITLine = function (yTileStart, xTileStart, yTileOffset) {
+    //Fetch tile attributes:
+    var chrData = this.fetchTile(yTileStart | 0, xTileStart | 0) | 0;
+    xTileStart = ((xTileStart | 0) + 1) | 0;
+    //Get 8 pixels of data:
+    this.process4BitVRAM(chrData | 0, yTileOffset | 0);
+    //Copy the buffered tile to line:
+    this.fetchVRAMStart();
+    //Render the rest of the tiles fast:
+    this.renderWholeTiles4BIT(xTileStart | 0, yTileStart | 0, yTileOffset | 0);
 }
 if (__LITTLE_ENDIAN__) {
     GameBoyAdvanceBGTEXTRenderer.prototype.fetchTile = function (yTileStart, xTileStart) {
@@ -435,14 +499,9 @@ GameBoyAdvanceBGTEXTRenderer.prototype.addressInvalidRender = function () {
     this.tileFetched[6] = data | 0;
     this.tileFetched[7] = data | 0;
 }
-GameBoyAdvanceBGTEXTRenderer.prototype.palettePreprocess = function () {
-    //Make references:
-    if (this.gfx.BGPalette256[this.BGLayer & 3]) {
-        this.processVRAM = this.process8BitVRAM;
-    }
-    else {
-        this.processVRAM = this.process4BitVRAM;
-    }
+GameBoyAdvanceBGTEXTRenderer.prototype.paletteModeSelect = function (do256) {
+    do256 = do256 | 0;
+    this.do256 = do256 | 0;
 }
 GameBoyAdvanceBGTEXTRenderer.prototype.screenSizePreprocess = function () {
     this.tileMode = this.gfx.BGScreenSize[this.BGLayer & 0x3] | 0;
